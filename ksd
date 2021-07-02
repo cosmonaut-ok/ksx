@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+
+import argparse
+import subprocess
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument('-l', '--list',
+                    action='store_true',
+                    dest='list',
+                    help='Suppress Output'
+                    )
+parser.add_argument('-o', '--output',
+                    type=str,
+                    dest='output',
+                    help='output format json|yaml|wide|custom-columns=...|custom-columns-file=...|go-template=...|go-template-file=...|jsonpath=...|jsonpath-file=...]'
+                    )
+
+parser.add_argument('-c', '--current-deployment',
+                    action='store_true',
+                    dest='current_deployment',
+                    help='Print current deployment'
+                    )
+
+parser.add_argument('-u', '--use-deployment',
+                    type=str,
+                    dest='use_deployment',
+                    help='Use deployment as current'
+                    )
+
+args = parser.parse_args()
+
+global out_suffix
+
+if args.output:
+    out_suffix = " -o " + args.output
+else:
+    out_suffix = ""
+
+
+def list_deployments():
+    cmd = "kubectl get deployments -o name" + out_suffix
+    lst = subprocess.getoutput(cmd)
+    return lst
+
+
+def print_deployments():
+    cmd = "kubectl get deployment" + out_suffix
+    subprocess.call(cmd, shell=True)
+
+if args.list:
+    print_deployments()
+elif args.current_deployment:
+    print(get_current_deployment())
+elif args.use_deployment:
+    set_current_deployment(args.use_deployment)
+else: # default action is "get deployments"
+    print_deployments()

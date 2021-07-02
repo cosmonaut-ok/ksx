@@ -1,3 +1,8 @@
+ksc  ksn  ksp  kspvc
+
+--grep should be implemented
+
+
 apiservices.apiregistration.k8s.io                           -
 networkpolicies.networking.k8s.io                            -
 backendconfigs.cloud.google.com                              -
