@@ -1,8 +1,8 @@
 import subprocess
 
 class Werbs():
-    def __init__(self, out_suffix, pod_shell="/bin/bash", kctl_bin="kubectl", all_ns=False, trace=False):
-        self.out_suffix = out_suffix
+    def __init__(self, out_format=None, pod_shell="/bin/bash", kctl_bin="kubectl", all_ns=False, trace=False, labels=None):
+        # self.out_suffix = out_suffix
         self.shell = pod_shell
         self.kctl = kctl_bin
         if all_ns:
@@ -11,6 +11,15 @@ class Werbs():
             self.all_ns = ""
 
         self.trace = trace
+        self.labels = labels
+
+        self.out_suffix = ""
+        if out_format:
+            self.out_suffix = " -o " + out_format
+
+        self.labels = ""
+        if labels:
+            self.labels = " -l " + labels
 
 
     def __pit(self, string):
@@ -35,6 +44,7 @@ class Werbs():
     def list_of(self, name):
         cmd = "{} get {} -o name".format(self.kctl, name)
         cmd += self.all_ns
+        cmd += self.labels
         self.__pit(cmd)
         lst = subprocess.getoutput(cmd)
         return lst
@@ -44,6 +54,7 @@ class Werbs():
         cmd = "{} get {}".format(self.kctl, name)
         cmd += self.all_ns
         cmd += self.out_suffix
+        cmd += self.labels
         self.__pit(cmd)
         subprocess.call(cmd, shell=True)
 

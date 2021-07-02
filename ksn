@@ -31,6 +31,12 @@ parser.add_argument('-u', '--use-namespace',
                     help='Use namespace as current'
                     )
 
+parser.add_argument('-d', '--describe',
+                    type=str,
+                    dest='describe',
+                    help='describe namespace'
+                    )
+
 parser.add_argument('-t', '--trace',
                     action='store_true',
                     dest='trace',
@@ -74,6 +80,8 @@ elif args.current_namespace:
     print(werbs.current_namespace())
 elif args.use_namespace:
     set_current_namespace(args.use_namespace)
+elif args.describe:
+    werbs.describe_of("namespaces/{}".format(args.describe))
 elif args.use_namespace_pos:
     set_current_namespace(args.use_namespace_pos[0])
 else: # default action is "get namespaces"

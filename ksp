@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-import argparse
-import subprocess
-
+import subprocess, argparse
 from werbs import Werbs
 
 parser = argparse.ArgumentParser()
+
+parser.add_argument("describe_pod_pos", help="Get pod", type=str, nargs='*')
 
 parser.add_argument('-l', '--list',
                     action='store_true',
@@ -43,16 +43,22 @@ parser.add_argument('-A', '--all-namespaces',
                     help='Operate with resources from all namespaces'
                     )
 
+parser.add_argument('-d', '--describe',
+                    type=str,
+                    dest='describe',
+                    help='describe namespace'
+                    )
+
 parser.add_argument('-t', '--trace',
                     action='store_true',
                     dest='trace',
                     help='trace real kubectl commands'
                     )
 
-parser.add_argument('-g', '--get',
+parser.add_argument('--labels',
                     type=str,
-                    dest='get',
-                    help='get resource with name (useful with e.g. -o yaml'
+                    dest='labels',
+                    help='Use label to filter out resources'
                     )
 
 args = parser.parse_args()
@@ -62,12 +68,7 @@ global out_suffix, kctl_bin, werbs, pod_shell
 kctl_bin = "kubectl"
 pod_shell = "/bin/bash"
 
-if args.output:
-    out_suffix = " -o " + args.output
-else:
-    out_suffix = ""
-
-werbs = Werbs(out_suffix, kctl_bin=kctl_bin, all_ns=args.all_namespaces, trace=args.trace)
+werbs = Werbs(out_format=args.output, labels=args.labels, kctl_bin=kctl_bin, all_ns=args.all_namespaces, trace=args.trace)
 
 if args.output:
     out_suffix = " -o " + args.output
@@ -99,7 +100,9 @@ elif args.shell:
         shell_to_pod(args.shell)
 elif args.containers_list:
     print(containers_list(args.containers_list))
-elif args.get:
-    werbs.print_of("pods/{}".format(args.get))
+elif args.describe:
+    werbs.describe_of("pods/{}".format(args.describe))
+elif args.describe_pod_pos:
+    werbs.describe_of("pods/{}".format(args.describe_pod_pos[0]))
 else: # default action is "get namespaces"
     werbs.print_of("pods")
