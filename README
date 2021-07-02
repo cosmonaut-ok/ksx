@@ -1,3 +1,11 @@
+ksTools - is a set of tools, wrapped over kubectl and following unixway design of command line tools:
+
+- each tool do one thing well
+- each tool has short name
+- each tool has default actions (e.g. `ksn` w/o arguments prints list of namespaces and `ksn NAMESPACE` set to use NAMESPACE as default one)
+- each tool bound to single kubernetes resource, or logical object
+- each tool has standard collection of keys (the same as other)
+
 keys:
 
 | -l --list   | get <smth>                                                   | main |
@@ -7,8 +15,8 @@ keys:
 | -a --attach | attach to the pod`s container                                | main |
 | -s --shell  | get shell in the pod                                         | main |
 | -d describe | describe resource                                            | main |
-| -g --get    | get resource with name (useful with e.g. -o yaml             | main |
-| --man       | explain        | main |
+| --wat       | explain resources, that managed by tool                      | main |
+| --labels    | filter resources by label                                    | sub  |
 
 
 ksc  ksn  ksp  kspvc

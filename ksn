@@ -43,6 +43,12 @@ parser.add_argument('-t', '--trace',
                     help='trace real kubectl commands'
                     )
 
+parser.add_argument('--wat',
+                    action='store_true',
+                    dest='wat',
+                    help='Manual about kubernetes PVC'
+                    )
+
 args = parser.parse_args()
 
 global out_suffix, kctl_bin, werbs
@@ -72,7 +78,13 @@ def print_namespaces():
 def set_current_namespace(ns):
     curr_context = werbs.current_context()
     cmd = "kubectl config set-context {} --namespace {}".format(curr_context, ns)
+    if args.trace:
+        ns = werbs.current_namespace()
+        ctx = werbs.current_context()
+        print("cmd: `{}`; namespace: `{}`; context: `{}`".format(cmd, ns, ctx))
+
     subprocess.call(cmd, shell=True)
+
 
 if args.list:
     werbs.print_of("namespaces")
@@ -82,6 +94,8 @@ elif args.use_namespace:
     set_current_namespace(args.use_namespace)
 elif args.describe:
     werbs.describe_of("namespaces/{}".format(args.describe))
+elif args.wat:
+    werbs.explain_of("namespaces")
 elif args.use_namespace_pos:
     set_current_namespace(args.use_namespace_pos[0])
 else: # default action is "get namespaces"

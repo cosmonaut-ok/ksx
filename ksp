@@ -61,6 +61,12 @@ parser.add_argument('--labels',
                     help='Use label to filter out resources'
                     )
 
+parser.add_argument('--wat',
+                    action='store_true',
+                    dest='wat',
+                    help='Manual about kubernetes pods'
+                    )
+
 args = parser.parse_args()
 
 global out_suffix, kctl_bin, werbs, pod_shell
@@ -102,6 +108,8 @@ elif args.containers_list:
     print(containers_list(args.containers_list))
 elif args.describe:
     werbs.describe_of("pods/{}".format(args.describe))
+elif args.wat:
+    werbs.explain_of("pods")
 elif args.describe_pod_pos:
     werbs.describe_of("pods/{}".format(args.describe_pod_pos[0]))
 else: # default action is "get namespaces"
