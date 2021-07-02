@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+
+import argparse
+import subprocess
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument('-l', '--list',
+                    action='store_true',
+                    dest='list',
+                    help='Print list of contexts'
+                    )
+parser.add_argument('-o', '--output',
+                    type=str,
+                    dest='output',
+                    help='output format json|yaml|wide|custom-columns=...|custom-columns-file=...|go-template=...|go-template-file=...|jsonpath=...|jsonpath-file=...]'
+                    )
+
+parser.add_argument('-c', '--current-context',
+                    action='store_true',
+                    dest='current_context',
+                    help='Print current context'
+                    )
+
+parser.add_argument('-u', '--use-context',
+                    type=str,
+                    dest='use_context',
+                    help='Use context as current'
+                    )
+
+args = parser.parse_args()
+
+global out_suffix
+
+if args.output:
+    out_suffix = " -o " + args.output
+else:
+    out_suffix = ""
+
+
+def current_context():
+    cmd = "kubectl config current-context" # get-contexts -o name
+    curr = subprocess.getoutput(cmd)
+    return curr
+
+
+def list_contexts():
+    cmd = "kubectl config get-contexts -o name"
+    lst = subprocess.getoutput(cmd)
+    return lst
+
+
+def print_contexts():
+    cmd = "kubectl config get-contexts" + out_suffix
+    subprocess.call(cmd, shell=True)
+
+
+def set_current_context(ctx):
+    cmd = "kubectl config use-context {}".format(ctx)
+    subprocess.call(cmd, shell=True)
+
+
+if args.list:
+    print_contexts()
+elif args.current_context:
+    print(current_context())
+elif args.use_context:
+    set_current_context(args.use_context)
+else: # default action is "get contexts"
+    print_contexts()

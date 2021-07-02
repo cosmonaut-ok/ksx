@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+
+import argparse
+import subprocess
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument('-l', '--list',
+                    action='store_true',
+                    dest='list',
+                    help='Suppress Output'
+                    )
+parser.add_argument('-o', '--output',
+                    type=str,
+                    dest='output',
+                    help='output format json|yaml|wide|custom-columns=...|custom-columns-file=...|go-template=...|go-template-file=...|jsonpath=...|jsonpath-file=...]'
+                    )
+
+parser.add_argument('-c', '--current-namespace',
+                    action='store_true',
+                    dest='current_namespace',
+                    help='Print current namespace'
+                    )
+
+parser.add_argument('-u', '--use-namespace',
+                    type=str,
+                    dest='use_namespace',
+                    help='Use namespace as current'
+                    )
+
+args = parser.parse_args()
+
+global out_suffix
+
+if args.output:
+    out_suffix = " -o " + args.output
+else:
+    out_suffix = ""
+
+
+def current_context():
+    cmd = "kubectl config current-context" # get-contexts -o name
+    curr = subprocess.getoutput(cmd)
+    return curr
+
+
+def get_current_namespace():
+    cmd = "kubectl config view --minify --output 'jsonpath={..namespace}'"
+    curr = subprocess.getoutput(cmd)
+    return curr
+
+def list_contexts():
+    cmd = "kubectl config get-contexts -o name"
+    lst = subprocess.getoutput(cmd)
+    return lst
+
+
+def list_namespaces():
+    cmd = "kubectl get namespaces -o name" + out_suffix
+    lst = subprocess.getoutput(cmd)
+    return lst
+
+
+def print_contexts():
+    cmd = "kubectl config get-contexts" + out_suffix
+    subprocess.call(cmd, shell=True)
+
+
+def print_namespaces():
+    cmd = "kubectl get namespaces" + out_suffix
+    subprocess.call(cmd, shell=True)
+
+def set_current_namespace(ns):
+    curr_context = current_context()
+    cmd = "kubectl config set-context {} --namespace {}".format(curr_context, ns)
+    subprocess.call(cmd, shell=True)
+
+if args.list:
+    print_namespaces()
+elif args.current_namespace:
+    print(get_current_namespace())
+elif args.use_namespace:
+    set_current_namespace(args.use_namespace)
+else: # default action is "get namespaces"
+    print_namespaces()
