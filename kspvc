@@ -1,0 +1,187 @@
+#!/usr/bin/env python3
+
+import argparse
+import subprocess
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument('-l', '--list',
+                    action='store_true',
+                    dest='list',
+                    help='Suppress Output'
+                    )
+parser.add_argument('-o', '--output',
+                    type=str,
+                    dest='output',
+                    help='output format json|yaml|wide|custom-columns=...|custom-columns-file=...|go-template=...|go-template-file=...|jsonpath=...|jsonpath-file=...]'
+                    )
+
+parser.add_argument('-c', '--current-namespace',
+                    action='store_true',
+                    dest='current_namespace',
+                    help='Print current namespace'
+                    )
+
+parser.add_argument('-u', '--use-namespace',
+                    type=str,
+                    dest='use_namespace',
+                    help='Use namespace as current'
+                    )
+
+parser.add_argument('--man',
+                    action='store_true',
+                    dest='man',
+                    help='Manual about kubernetes PVC'
+                    )
+
+
+
+
+  # Troubleshooting and Debugging Commands:
+  # -d describe      Show details of a specific resource or group of resources
+  # --logs logs          Print the logs for a container in a pod
+  # -a attach        Attach to a running container
+  # -e exec          Execute a command in a container
+  # --pf port-forward  Forward one or more local ports to a pod
+  # -p proxy         Run a proxy to the Kubernetes API server
+  # --cp cp            Copy files and directories to and from containers.
+  # --auth auth          Inspect authorization
+  # --debug debug         Create debugging sessions for troubleshooting workloads and nodes
+
+
+
+
+
+args = parser.parse_args()
+
+global out_suffix
+
+if args.output:
+    out_suffix = " -o " + args.output
+else:
+    out_suffix = ""
+
+# get           Display one or many resources
+def list_pvc():
+    cmd = "kubectl get pvc -o name"
+
+
+def print_pvc():
+    cmd = "kubectl get pvc" + out_suffix
+
+
+def edit_pvc(name):
+    cmd = "kubectl edit pvc/{}".format(name)
+
+def delete_pvc(name):
+    cmd = "kubectl delete pvc/{}".format(name)
+
+
+def man_pvc(name):
+    cmd = "kubectl explain pvc"
+
+def describe_pvc(name):
+    cmd = "kubectl describe pvc/{}".format(name)
+
+
+def logs_pvc(name):
+    cmd = "kubectl logs pvc/{}".format(name)
+
+
+def attach_pvc(name):
+    cmd = "kubectl logs pvc/{}".format(name)
+
+
+def exec_pvc(name):
+    cmd = "kubectl logs pvc/{}".format(name)
+
+
+def port_forward_pvc(name):
+    cmd = "kubectl logs pvc/{}".format(name)
+
+
+def proxy_pvc(name):
+    cmd = "kubectl logs pvc/{}".format(name)
+
+
+def cp_pvc(name):
+    cmd = "kubectl logs pvc/{}".format(name)
+
+
+def auth_pvc(name):
+    cmd = "kubectl logs pvc/{}".format(name)
+
+
+def debug_pvc(name):
+    cmd = "kubectl logs pvc/{}".format(name)
+
+
+
+
+
+
+# def current_context():
+#     cmd = "kubectl config current-context" # get-contexts -o name
+#     curr = subprocess.getoutput(cmd)
+#     return curr
+
+
+# def get_current_namespace():
+#     cmd = "kubectl config view --minify --output 'jsonpath={..namespace}'"
+#     curr = subprocess.getoutput(cmd)
+#     return curr
+
+# def list_contexts():
+#     cmd = "kubectl config get-contexts -o name"
+#     lst = subprocess.getoutput(cmd)
+#     return lst
+
+
+# def list_namespaces():
+#     cmd = "kubectl get namespaces -o name" + out_suffix
+#     lst = subprocess.getoutput(cmd)
+#     return lst
+
+
+# def print_contexts():
+#     cmd = "kubectl config get-contexts" + out_suffix
+#     subprocess.call(cmd, shell=True)
+
+
+# def print_namespaces():
+#     cmd = "kubectl get namespaces" + out_suffix
+#     subprocess.call(cmd, shell=True)
+
+# def set_current_namespace(ns):
+#     curr_context = current_context()
+#     cmd = "kubectl config set-context {} --namespace {}".format(curr_context, ns)
+#     subprocess.call(cmd, shell=True)
+
+# if args.list:
+#     print_namespaces()
+# elif args.current_namespace:
+#     print(get_current_namespace())
+# elif args.use_namespace:
+#     set_current_namespace(args.use_namespace)
+# else: # default action is "get namespaces"
+#     print_namespaces()
+
+
+
+  # explain       Documentation of resources
+  # get           Display one or many resources
+  # edit          Edit a resource on the server
+  # delete        Delete resources by filenames, stdin, resources and names, or by resources and label selector
+
+
+
+  # Troubleshooting and Debugging Commands:
+  # describe      Show details of a specific resource or group of resources
+  # logs          Print the logs for a container in a pod
+  # attach        Attach to a running container
+  # exec          Execute a command in a container
+  # port-forward  Forward one or more local ports to a pod
+  # proxy         Run a proxy to the Kubernetes API server
+  # cp            Copy files and directories to and from containers.
+  # auth          Inspect authorization
+  # debug         Create debugging sessions for troubleshooting workloads and nodes
