@@ -83,10 +83,20 @@ else:
 
 def shell_to_pod(name):
     cmd = "{} exec --stdin --tty pods/{} -- {}".format(kctl_bin, name, pod_shell)
+    if args.trace:
+        ns = werbs.current_namespace()
+        ctx = werbs.current_context()
+        print("cmd: `{}`; namespace: `{}`; context: `{}`".format(cmd, ns, ctx))
+
     subprocess.call(cmd, shell=True)
 
 def shell_to_pods_container(pod_name, container_name):
     cmd = "{} exec --stdin --tty pods/{} --container {} -- {}".format(kctl_bin, pod_name, container_name, pod_shell)
+    if args.trace:
+        ns = werbs.current_namespace()
+        ctx = werbs.current_context()
+        print("cmd: `{}`; namespace: `{}`; context: `{}`".format(cmd, ns, ctx))
+
     subprocess.call(cmd, shell=True)
 
 
