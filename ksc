@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 
-import argparse
-import subprocess
+import subprocess, argparse
+from werbs import Werbs
 
 parser = argparse.ArgumentParser()
+
+parser.add_argument("use_context_pos", help="Use context as current", type=str, nargs='*')
 
 parser.add_argument('-l', '--list',
                     action='store_true',
                     dest='list',
                     help='Print list of contexts'
                     )
+
 parser.add_argument('-o', '--output',
                     type=str,
                     dest='output',
@@ -28,14 +31,24 @@ parser.add_argument('-u', '--use-context',
                     help='Use context as current'
                     )
 
+parser.add_argument('-t', '--trace',
+                    action='store_true',
+                    dest='trace',
+                    help='trace real kubectl commands'
+                    )
+
 args = parser.parse_args()
 
-global out_suffix
+global out_suffix, kctl_bin, werbs
+
+kctl_bin = "kubectl"
 
 if args.output:
     out_suffix = " -o " + args.output
 else:
     out_suffix = ""
+
+werbs = Werbs(out_suffix, kctl_bin=kctl_bin, trace=args.trace)
 
 
 def current_context():
@@ -59,12 +72,13 @@ def set_current_context(ctx):
     cmd = "kubectl config use-context {}".format(ctx)
     subprocess.call(cmd, shell=True)
 
-
 if args.list:
     print_contexts()
 elif args.current_context:
     print(current_context())
 elif args.use_context:
     set_current_context(args.use_context)
+elif args.use_context_pos:
+    set_current_context(args.use_context_pos[0])
 else: # default action is "get contexts"
     print_contexts()

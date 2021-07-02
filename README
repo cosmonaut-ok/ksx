@@ -1,3 +1,16 @@
+keys:
+
+| -l --list   | get <smth>                                                   | main |
+| -A          | all namespaces/all containers (in case of e.g. logs command) | sub  |
+| -o --output | output format                                                | sub  |
+| -L --logs   | logs                                                         | main |
+| -a --attach | attach to the pod`s container                                | main |
+| -s --shell  | get shell in the pod                                         | main |
+| -d describe | describe resource                                            | main |
+| -g --get    | get resource with name (useful with e.g. -o yaml             | main |
+| --man       | explain        | main |
+
+
 ksc  ksn  ksp  kspvc
 
 --grep should be implemented

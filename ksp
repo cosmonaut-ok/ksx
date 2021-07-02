@@ -3,13 +3,16 @@
 import argparse
 import subprocess
 
+from werbs import Werbs
+
 parser = argparse.ArgumentParser()
 
 parser.add_argument('-l', '--list',
                     action='store_true',
-                    dest='quiet',
+                    dest='list',
                     help='Suppress Output'
                     )
+
 parser.add_argument('-o', '--output',
                     type=str,
                     dest='output',
@@ -34,11 +37,29 @@ parser.add_argument('--container',
                     help='Operate with single container inside of multicontainer pod'
                     )
 
+parser.add_argument('-A', '--all-namespaces',
+                    action='store_true',
+                    dest='all_namespaces',
+                    help='Operate with resources from all namespaces'
+                    )
+
+parser.add_argument('-t', '--trace',
+                    action='store_true',
+                    dest='trace',
+                    help='trace real kubectl commands'
+                    )
+
+parser.add_argument('-g', '--get',
+                    type=str,
+                    dest='get',
+                    help='get resource with name (useful with e.g. -o yaml'
+                    )
+
 args = parser.parse_args()
 
-global out_suffix
-global pod_shell
+global out_suffix, kctl_bin, werbs, pod_shell
 
+kctl_bin = "kubectl"
 pod_shell = "/bin/bash"
 
 if args.output:
@@ -46,58 +67,31 @@ if args.output:
 else:
     out_suffix = ""
 
+werbs = Werbs(out_suffix, kctl_bin=kctl_bin, all_ns=args.all_namespaces, trace=args.trace)
 
-# def current_context():
-#     cmd = "kubectl config current-context" # get-contexts -o name
-#     curr = subprocess.getoutput(cmd)
-#     return curr
-
-
-# def list_contexts():
-#     cmd = "kubectl config get-contexts -o name"
-#     lst = subprocess.getoutput(cmd)
-#     return lst
-
-
-# def list_namespaces():
-#     cmd = "kubectl get namespaces -o name" + out_suffix
-#     lst = subprocess.getoutput(cmd)
-#     return lst
-
-
-# def print_contexts():
-#     cmd = "kubectl config get-contexts" + out_suffix
-#     subprocess.call(cmd, shell=True)
-
-
-def print_pods():
-    cmd = "kubectl get pods" + out_suffix
-    subprocess.call(cmd, shell=True)
-
-
-# def set_current_namespace(ns):
-#     curr_context = current_context()
-#     cmd = "kubectl config set-context {} --namespace {}".format(curr_context, ns)
-#     subprocess.call(cmd, shell=True)
+if args.output:
+    out_suffix = " -o " + args.output
+else:
+    out_suffix = ""
 
 def shell_to_pod(name):
-    cmd = "kubectl exec --stdin --tty pods/{} -- {}".format(name, pod_shell)
+    cmd = "{} exec --stdin --tty pods/{} -- {}".format(kctl_bin, name, pod_shell)
     subprocess.call(cmd, shell=True)
 
 def shell_to_pods_container(pod_name, container_name):
-    cmd = "kubectl exec --stdin --tty pods/{} --container {} -- {}".format(pod_name, container_name, pod_shell)
+    cmd = "{} exec --stdin --tty pods/{} --container {} -- {}".format(kctl_bin, pod_name, container_name, pod_shell)
     subprocess.call(cmd, shell=True)
 
 
 def containers_list(name):
-    cmd = "kubectl get pods/{}".format(name)
+    cmd = "{} get pods/{}".format(kctl_bin, name)
     cmd += " -o=jsonpath='{.spec.containers[*].name}'"
     out = subprocess.getoutput(cmd)
     return out
 
     
-if args.quiet:
-    print_pods()
+if args.list:
+    werbs.print_of("pods")
 elif args.shell:
     if args.container_name:
         shell_to_pods_container(args.shell, args.container_name)
@@ -105,73 +99,7 @@ elif args.shell:
         shell_to_pod(args.shell)
 elif args.containers_list:
     print(containers_list(args.containers_list))
+elif args.get:
+    werbs.print_of("pods/{}".format(args.get))
 else: # default action is "get namespaces"
-    print_pods()
-
-
-
-
-# --all-containers=true 
-
-#     Print the logs for a container in a pod or specified resource. If the pod has only one container, the container name is
-# optional.
-
-# Examples:
-#   # Return snapshot logs from pod nginx with only one container
-#   kubectl logs nginx
-  
-#   # Return snapshot logs from pod nginx with multi containers
-#   kubectl logs nginx --all-containers=true
-  
-#   # Return snapshot logs from all containers in pods defined by label app=nginx
-#   kubectl logs -lapp=nginx --all-containers=true
-  
-#   # Return snapshot of previous terminated ruby container logs from pod web-1
-#   kubectl logs -p -c ruby web-1
-  
-#   # Begin streaming the logs of the ruby container in pod web-1
-#   kubectl logs -f -c ruby web-1
-  
-#   # Begin streaming the logs from all containers in pods defined by label app=nginx
-#   kubectl logs -f -lapp=nginx --all-containers=true
-  
-#   # Display only the most recent 20 lines of output in pod nginx
-#   kubectl logs --tail=20 nginx
-  
-#   # Show all logs from pod nginx written in the last hour
-#   kubectl logs --since=1h nginx
-  
-#   # Show logs from a kubelet with an expired serving certificate
-#   kubectl logs --insecure-skip-tls-verify-backend nginx
-  
-#   # Return snapshot logs from first container of a job named hello
-#   kubectl logs job/hello
-  
-#   # Return snapshot logs from container nginx-1 of a deployment named nginx
-#   kubectl logs deployment/nginx -c nginx-1
-
-# Options:
-#       --all-containers=false: Get all containers' logs in the pod(s).
-#   -c, --container='': Print the logs of this container
-#   -f, --follow=false: Specify if the logs should be streamed.
-#       --ignore-errors=false: If watching / following pod logs, allow for any errors that occur to be non-fatal
-#       --insecure-skip-tls-verify-backend=false: Skip verifying the identity of the kubelet that logs are requested from.
-# In theory, an attacker could provide invalid log content back. You might want to use this if your kubelet serving
-# certificates have expired.
-#       --limit-bytes=0: Maximum bytes of logs to return. Defaults to no limit.
-#       --max-log-requests=5: Specify maximum number of concurrent logs to follow when using by a selector. Defaults to 5.
-#       --pod-running-timeout=20s: The length of time (like 5s, 2m, or 3h, higher than zero) to wait until at least one
-# pod is running
-#       --prefix=false: Prefix each log line with the log source (pod name and container name)
-#   -p, --previous=false: If true, print the logs for the previous instance of the container in a pod if it exists.
-#   -l, --selector='': Selector (label query) to filter on.
-#       --since=0s: Only return logs newer than a relative duration like 5s, 2m, or 3h. Defaults to all logs. Only one of
-# since-time / since may be used.
-#       --since-time='': Only return logs after a specific date (RFC3339). Defaults to all logs. Only one of since-time /
-# since may be used.
-#       --tail=-1: Lines of recent log file to display. Defaults to -1 with no selector, showing all log lines otherwise
-# 10, if a selector is provided.
-#       --timestamps=false: Include timestamps on each line in the log output
-
-# Usage:
-#   kubectl logs [-f] [-p] (POD | TYPE/NAME) [-c CONTAINER] [options]
+    werbs.print_of("pods")

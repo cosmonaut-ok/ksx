@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 
-import argparse
-import subprocess
+import subprocess, argparse
+from werbs import Werbs
 
 parser = argparse.ArgumentParser()
+
+parser.add_argument("use_namespace_pos", help="Use namespace as current", type=str, nargs='*')
 
 parser.add_argument('-l', '--list',
                     action='store_true',
                     dest='list',
                     help='Suppress Output'
                     )
+
 parser.add_argument('-o', '--output',
                     type=str,
                     dest='output',
@@ -28,58 +31,51 @@ parser.add_argument('-u', '--use-namespace',
                     help='Use namespace as current'
                     )
 
+parser.add_argument('-t', '--trace',
+                    action='store_true',
+                    dest='trace',
+                    help='trace real kubectl commands'
+                    )
+
 args = parser.parse_args()
 
-global out_suffix
+global out_suffix, kctl_bin, werbs
+
+kctl_bin = "kubectl"
 
 if args.output:
     out_suffix = " -o " + args.output
 else:
     out_suffix = ""
 
-
-def current_context():
-    cmd = "kubectl config current-context" # get-contexts -o name
-    curr = subprocess.getoutput(cmd)
-    return curr
-
-
-def get_current_namespace():
-    cmd = "kubectl config view --minify --output 'jsonpath={..namespace}'"
-    curr = subprocess.getoutput(cmd)
-    return curr
-
-def list_contexts():
-    cmd = "kubectl config get-contexts -o name"
-    lst = subprocess.getoutput(cmd)
-    return lst
-
-
-def list_namespaces():
-    cmd = "kubectl get namespaces -o name" + out_suffix
-    lst = subprocess.getoutput(cmd)
-    return lst
+werbs = Werbs(out_suffix, kctl_bin=kctl_bin, trace=args.trace)
 
 
 def print_contexts():
-    cmd = "kubectl config get-contexts" + out_suffix
+    cmd = "{} config get-contexts".format(kctl_bin)
+    cmd += out_suffix
     subprocess.call(cmd, shell=True)
 
 
 def print_namespaces():
-    cmd = "kubectl get namespaces" + out_suffix
+    cmd = "{} get namespaces".format(kctl_bin)
+    cmd += out_suffix
     subprocess.call(cmd, shell=True)
 
+
 def set_current_namespace(ns):
-    curr_context = current_context()
+    curr_context = werbs.current_context()
     cmd = "kubectl config set-context {} --namespace {}".format(curr_context, ns)
     subprocess.call(cmd, shell=True)
 
 if args.list:
-    print_namespaces()
+    werbs.print_of("namespaces")
 elif args.current_namespace:
-    print(get_current_namespace())
+    print(werbs.current_namespace())
 elif args.use_namespace:
     set_current_namespace(args.use_namespace)
+elif args.use_namespace_pos:
+    set_current_namespace(args.use_namespace_pos[0])
 else: # default action is "get namespaces"
-    print_namespaces()
+    werbs.print_of("namespaces")
+
