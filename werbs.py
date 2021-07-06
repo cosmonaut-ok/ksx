@@ -1,10 +1,14 @@
+from json import loads
 import subprocess
 
 class Werbs():
-    def __init__(self, out_format=None, pod_shell="/bin/bash", kctl_bin="kubectl", all_ns=False, trace=False, labels=None):
+    def __init__(self, out_format=None, pod_shell="/bin/bash", kctl_bin="kubectl", all_ns=False, trace=False, labels=None, config_path=None):
+
+        json = loads(open(config_path).read())
+
         # self.out_suffix = out_suffix
-        self.shell = pod_shell
-        self.kctl = kctl_bin
+        self.shell = json['shell'] if json['shell'] else 'kubectl'
+        self.kctl = json['cmd'] if json['cmd'] else '/bin/sh'
         if all_ns:
             self.all_ns = " --all-namespaces "
         else:
@@ -76,20 +80,5 @@ class Werbs():
         self.__pit(cmd)
         subprocess.call(cmd, shell=True)
 
-    
-    # def shell_to_pod(name):
-    #     cmd = "{} exec --stdin --tty pods/{} -- {}".format(self.kctl, name, self.pod_shell)
-    #     subprocess.call(cmd, shell=True)
-
-
-    # def shell_to_container(pod_name, container_name):
-    #     cmd = "{} exec --stdin --tty pods/{} --container {} -- {}".format(self.kctl, pod_name, container_name, self.shell)
-    #     subprocess.call(cmd, shell=True)
-
-    
-    
-    # def list_of_containers(name):
-    #     cmd = "{} get pods/{}".format(self.kctl, name)
-    #     cmd += " -o=jsonpath='{.spec.containers[*].name}'"
-    #     out = subprocess.getoutput(cmd)
-    #     return out
+    def print_version(self):
+        print("v. 0.0.1")

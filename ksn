@@ -1,49 +1,62 @@
 #!/usr/bin/env python3
 
-import subprocess, argparse
+import os, subprocess, argparse
 from werbs import Werbs
+from os.path import join, realpath, dirname
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument("use_namespace_pos", help="Use namespace as current", type=str, nargs='*')
 
-parser.add_argument('-l', '--list',
+# command arguments group
+cagroup=parser.add_argument_group('Werb arguments')
+
+# service arguments group
+sagroup=parser.add_argument_group('Service arguments')
+
+cagroup.add_argument('-l', '--list',
                     action='store_true',
                     dest='list',
                     help='Suppress Output'
                     )
 
-parser.add_argument('-o', '--output',
+sagroup.add_argument('-o', '--output',
                     type=str,
                     dest='output',
                     help='output format json|yaml|wide|custom-columns=...|custom-columns-file=...|go-template=...|go-template-file=...|jsonpath=...|jsonpath-file=...]'
                     )
 
-parser.add_argument('-c', '--current-namespace',
+cagroup.add_argument('-c', '--current-namespace',
                     action='store_true',
                     dest='current_namespace',
                     help='Print current namespace'
                     )
 
-parser.add_argument('-u', '--use-namespace',
+cagroup.add_argument('-u', '--use-namespace',
                     type=str,
                     dest='use_namespace',
                     help='Use namespace as current'
                     )
 
-parser.add_argument('-d', '--describe',
+cagroup.add_argument('-d', '--describe',
                     type=str,
                     dest='describe',
                     help='describe namespace'
                     )
 
-parser.add_argument('-t', '--trace',
+sagroup.add_argument('-t', '--trace',
                     action='store_true',
                     dest='trace',
                     help='trace real kubectl commands'
                     )
 
-parser.add_argument('--wat',
+sagroup.add_argument('-v', '--version',
+                    action='store_true',
+                    dest='version',
+                    help='show version of application'
+                    )
+
+cagroup.add_argument('--wat',
                     action='store_true',
                     dest='wat',
                     help='Manual about kubernetes PVC'
@@ -60,7 +73,7 @@ if args.output:
 else:
     out_suffix = ""
 
-werbs = Werbs(out_suffix, kctl_bin=kctl_bin, trace=args.trace)
+werbs = Werbs(out_suffix, config_path=join(dirname(realpath(__file__)), 'ks.json'))
 
 
 def print_contexts():
@@ -100,4 +113,3 @@ elif args.use_namespace_pos:
     set_current_namespace(args.use_namespace_pos[0])
 else: # default action is "get namespaces"
     werbs.print_of("namespaces")
-
