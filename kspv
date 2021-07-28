@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-n
+
 from os.path import join, realpath, dirname
 import subprocess, argparse
 from werbs import Werbs
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("describe_pvc_pos", help="Get pvc", type=str, nargs='*')
+parser.add_argument("describe_pv_pos", help="Get pv", type=str, nargs='*')
 
 # command arguments group
 cagroup=parser.add_argument_group('Werb arguments')
@@ -35,13 +35,13 @@ sagroup.add_argument('-A', '--all-namespaces',
 cagroup.add_argument('-d', '--describe',
                     type=str,
                     dest='describe',
-                    help='describe pvc'
+                    help='describe pv'
                     )
 
 cagroup.add_argument('-e', '--edit',
                     type=str,
                     dest='edit',
-                    help='edit pvc'
+                    help='edit pv'
                     )
 
 sagroup.add_argument('-t', '--trace',
@@ -59,7 +59,7 @@ sagroup.add_argument('--labels',
 cagroup.add_argument('--wat',
                     action='store_true',
                     dest='wat',
-                    help='Manual about kubernetes pvc'
+                    help='Manual about kubernetes pv'
                     )
 
 sagroup.add_argument('-v', '--version',
@@ -85,16 +85,16 @@ else:
 
     
 if args.list:
-    werbs.print_of("pvc")
+    werbs.print_of("pv")
 elif args.describe:
-    werbs.describe_of("pvc/{}".format(args.describe))
+    werbs.describe_of("pv/{}".format(args.describe))
 elif args.edit:
-    werbs.edit_of("pvc/{}".format(args.edit))
+    werbs.edit_of("pv/{}".format(args.edit))
 elif args.wat:
-    werbs.explain_of("pvc")
+    werbs.explain_of("pv")
 elif args.version:
     werbs.print_version()
-elif args.describe_pvc_pos:
-    werbs.describe_of("pvc/{}".format(args.describe_pvc_pos[0]))
+elif args.describe_pv_pos:
+    werbs.describe_of("pv/{}".format(args.describe_pv_pos[0]))
 else: # default action is "get namespaces"
-    werbs.print_of("pvc")
+    werbs.print_of("pv")

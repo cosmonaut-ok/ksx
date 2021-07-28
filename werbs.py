@@ -7,8 +7,8 @@ class Werbs():
         json = loads(open(config_path).read())
 
         # self.out_suffix = out_suffix
-        self.shell = json['shell'] if json['shell'] else 'kubectl'
-        self.kctl = json['cmd'] if json['cmd'] else '/bin/sh'
+        self.shell = json['shell'] if json['shell'] else '/bin/sh'
+        self.kctl = json['cmd'] if json['cmd'] else 'kubectl'
         if all_ns:
             self.all_ns = " --all-namespaces "
         else:
@@ -49,8 +49,8 @@ class Werbs():
         cmd = "{} get {} -o name".format(self.kctl, name)
         cmd += self.all_ns
         cmd += self.labels
-        self.__pit(cmd)
         lst = subprocess.getoutput(cmd)
+        self.__pit(cmd)
         return lst
 
 
@@ -59,26 +59,33 @@ class Werbs():
         cmd += self.all_ns
         cmd += self.out_suffix
         cmd += self.labels
-        self.__pit(cmd)
         subprocess.call(cmd, shell=True)
+        self.__pit(cmd)
 
 
     def explain_of(self, name):
         cmd = "{} explain {}".format(self.kctl, name)
-        self.__pit(cmd)
         subprocess.call(cmd, shell=True)
+        self.__pit(cmd)
 
 
     def describe_of(self, name):
         cmd = "{} describe {}".format(self.kctl, name)
-        self.__pit(cmd)
         subprocess.call(cmd, shell=True)
+        self.__pit(cmd)
+
+
+    def edit_of(self, name):
+        cmd = "{} edit {}".format(self.kctl, name)
+        subprocess.call(cmd, shell=True)
+        self.__pit(cmd)
 
 
     def delete_of(self, name):
         cmd = "{} delete {}".format(self.kctl, name)
-        self.__pit(cmd)
         subprocess.call(cmd, shell=True)
+        self.__pit(cmd)
+
 
     def print_version(self):
-        print("v. 0.0.1")
+        print("0.0.1")

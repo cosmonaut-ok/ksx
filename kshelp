@@ -1,0 +1,20 @@
+#!/usr/bin/env python3
+
+print('''ks<X> is a kubernetes tool collection, wrapped over standard
+kubernetes control tool `kubectl`.  The motivation of ksX is to
+develop more `laconic` kubectl, that also follows unix way principle:
+`Make each program do one thing well` and principle of least
+astonishment. So, each ksX's tool is very simple and bound to some
+kubernetes resouce, like `pod`, `ingress` etc. The list of ksX tools:
+
+ksc   - operate with contexts
+ksn   - operate with namespaces
+ksp   - operate with pods
+ksi   - operate with ingress
+kspv  - operate with persistant volumes
+kspvc - operate with persistant volume claims
+kss   - 
+ksd   - 
+ksts  - operate with stateful sets
+
+''')

@@ -1,84 +1,100 @@
 #!/usr/bin/env python3
 
-import subprocess, argparse
+import os, subprocess, argparse
+from os.path import join, realpath, dirname
 from werbs import Werbs
+from json import loads
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument("use_context_pos", help="Use context as current", type=str, nargs='*')
 
-parser.add_argument('-l', '--list',
+# command arguments group
+cagroup=parser.add_argument_group('Werb arguments')
+
+# service arguments group
+sagroup=parser.add_argument_group('Service arguments')
+
+cagroup.add_argument('-l', '--list',
                     action='store_true',
                     dest='list',
-                    help='Print list of contexts'
+                    help='Suppress Output'
                     )
 
-parser.add_argument('-o', '--output',
-                    type=str,
-                    dest='output',
-                    help='output format json|yaml|wide|custom-columns=...|custom-columns-file=...|go-template=...|go-template-file=...|jsonpath=...|jsonpath-file=...]'
-                    )
-
-parser.add_argument('-c', '--current-context',
-                    action='store_true',
-                    dest='current_context',
-                    help='Print current context'
-                    )
-
-parser.add_argument('-u', '--use-context',
+cagroup.add_argument('-u', '--use-context',
                     type=str,
                     dest='use_context',
                     help='Use context as current'
                     )
 
-parser.add_argument('-t', '--trace',
+sagroup.add_argument('-t', '--trace',
                     action='store_true',
                     dest='trace',
                     help='trace real kubectl commands'
                     )
 
+sagroup.add_argument('-v', '--version',
+                    action='store_true',
+                    dest='version',
+                    help='show version of application'
+                    )
+
+kctl_bin = "/dev/null"
+
+config=join(dirname(realpath(__file__)), 'ks.json')
+
+with open(config, 'r') as f:
+    json = loads(f.read())
+    kctl_bin = json['cmd'] if json['cmd'] else 'kubectl'
+
+werbs = Werbs(config_path=config, kctl_bin=kctl_bin)
+
 args = parser.parse_args()
 
-global out_suffix, kctl_bin, werbs
-
-kctl_bin = "kubectl"
-
-if args.output:
-    out_suffix = " -o " + args.output
-else:
-    out_suffix = ""
-
-werbs = Werbs(out_suffix, kctl_bin=kctl_bin, trace=args.trace)
+def pit(string):
+    global args
+    if args.trace:
+        print("cmd: `{}`".format(string))
 
 
 def current_context():
-    cmd = "kubectl config current-context" # get-contexts -o name
+    global kctl_bin
+    cmd = kctl_bin + " config current-context" # get-contexts -o name
+    pit(cmd)
     curr = subprocess.getoutput(cmd)
     return curr
 
 
 def list_contexts():
-    cmd = "kubectl config get-contexts -o name"
+    global kctl_bin
+    cmd = kctl_bin + " config get-contexts -o name"
+    pit(cmd)
     lst = subprocess.getoutput(cmd)
     return lst
 
 
 def print_contexts():
-    cmd = "kubectl config get-contexts" + out_suffix
+    global kctl_bin
+    cmd = kctl_bin + " config get-contexts"
+    pit(cmd)
     subprocess.call(cmd, shell=True)
 
 
 def set_current_context(ctx):
-    cmd = "kubectl config use-context {}".format(ctx)
+    global kctl_bin
+    cmd = kctl_bin + " config use-context {}".format(ctx)
+    pit(cmd)
     subprocess.call(cmd, shell=True)
+
 
 if args.list:
     print_contexts()
-elif args.current_context:
-    print(current_context())
 elif args.use_context:
     set_current_context(args.use_context)
+elif args.version:
+    werbs.print_version()
 elif args.use_context_pos:
     set_current_context(args.use_context_pos[0])
-else: # default action is "get contexts"
-    print_contexts()
+else:
+    print(current_context())
+
