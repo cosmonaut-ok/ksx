@@ -63,6 +63,18 @@ cagroup.add_argument('-d', '--describe',
                     help='describe pod'
                     )
 
+cagroup.add_argument('--logs',
+                    type=str,
+                    dest='logs',
+                    help='logs from pod'
+                    )
+
+cagroup.add_argument('--del', '--delete',
+                    type=str,
+                    dest='delete',
+                    help='delete pod'
+                    )
+
 cagroup.add_argument('-e', '--edit',
                     type=str,
                     dest='edit',
@@ -133,6 +145,16 @@ def shell_to_pods_container(pod_name, container_name):
     subprocess.call(cmd, shell=True)
 
 
+def logs_to_pods_container(pod_name, container_name):
+    cmd = "{} logs pods/{} --container {}".format(kctl_bin, pod_name, container_name)
+    if args.trace:
+        ns = werbs.current_namespace()
+        ctx = werbs.current_context()
+        print("cmd: `{}`; namespace: `{}`; context: `{}`".format(cmd, ns, ctx))
+
+    subprocess.call(cmd, shell=True)
+
+
 def containers_list(name):
     cmd = "{} get pods/{}".format(kctl_bin, name)
     cmd += " -o=jsonpath='{.spec.containers[*].name}'"
@@ -151,8 +173,15 @@ elif args.containers_list:
     print(containers_list(args.containers_list))
 elif args.describe:
     werbs.describe_of("pods/{}".format(args.describe))
+elif args.delete:
+    werbs.delete_of("pods/{}".format(args.delete))
 elif args.edit:
     werbs.edit_of("pods/{}".format(args.edit))
+elif args.logs:
+    if args.container_name:
+        logs_to_pods_container(args.logs, args.container_name)
+    else:
+        werbs.logs_of("pods/{}".format(args.logs))
 elif args.wat:
     werbs.explain_of("pods")
 elif args.version:

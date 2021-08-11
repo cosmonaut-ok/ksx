@@ -75,8 +75,20 @@ class Werbs():
         self.__pit(cmd)
 
 
+    def delete_of(self, name):
+        cmd = "{} delete {}".format(self.kctl, name)
+        subprocess.call(cmd, shell=True)
+        self.__pit(cmd)
+
+
     def edit_of(self, name):
         cmd = "{} edit {}".format(self.kctl, name)
+        subprocess.call(cmd, shell=True)
+        self.__pit(cmd)
+
+
+    def logs_of(self, name):
+        cmd = "{} logs {}".format(self.kctl, name)
         subprocess.call(cmd, shell=True)
         self.__pit(cmd)
 
