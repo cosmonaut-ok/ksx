@@ -1,0 +1,253 @@
+#!/usr/bin/env python3
+
+from os.path import join, realpath, dirname
+import os
+import stat
+
+# import subprocess, argparse
+# from werbs import Werbs
+# from json import loads
+
+import http.client, json
+from urllib.parse import urlparse
+
+def http_get(domain, path, verbose=True):
+    is_got = False
+    conn = http.client.HTTPSConnection(domain)
+    conn.request("GET", path)
+    r1 = conn.getresponse()
+    
+    if verbose:
+        print("Downloading {}{}".format(domain, path))
+
+    for i in range(10):
+        if r1.status == 302 or r1.status == 301:
+            redir = urlparse(r1.headers['Location'])
+            if verbose:
+                print("Redirect to {}{}".format(redir.netloc, redir.path))
+            conn = http.client.HTTPSConnection(redir.netloc)
+            conn.request("GET", redir.path)
+            r1 = conn.getresponse()
+        else:
+            is_got = True
+            break
+
+    if not is_got:
+        raise("Can not get {}{}. Seems, infinite redirection loop".format(domain, path))
+
+    return r1.read()
+    
+kubeversion = http_get("dl.k8s.io", "/release/stable.txt").decode('utf-8')
+print("kubectl version is {}".format(kubeversion))
+
+kctl_bin = http_get("dl.k8s.io", "/release/{}/bin/linux/amd64/kubectl".format(kubeversion))
+
+kctl_path=join(dirname(realpath(__file__)), 'kubectl')
+
+with open(kctl_path, "wb") as f:
+    f.write(kctl_bin)
+
+## setup config file
+config = {
+    "cmd": "kubectl",
+    "shell": "/bin/bash"
+}
+
+config['cmd'] = kctl_path
+
+json_object = json.dumps(config, indent = 2)
+
+config_path=join(dirname(realpath(__file__)), 'ksx.json')
+
+with open(config_path, "w") as outfile:
+    outfile.write(json_object)
+
+## chmod +x
+st = os.stat(kctl_path)
+os.chmod(kctl_path, st.st_mode | stat.S_IEXEC)
+
+# parser = argparse.ArgumentParser()
+
+# parser.add_argument("describe_pod_pos", help="Get pod", type=str, nargs='*')
+
+# # command arguments group
+# cagroup=parser.add_argument_group('Werb arguments')
+
+# # service arguments group
+# sagroup=parser.add_argument_group('Service arguments')
+
+# cagroup.add_argument('-l', '--list',
+#                     action='store_true',
+#                     dest='list',
+#                     help='Suppress Output'
+#                     )
+
+# sagroup.add_argument('-o', '--output',
+#                     type=str,
+#                     dest='output',
+#                     help='output format json|yaml|wide|custom-columns=...|custom-columns-file=...|go-template=...|go-template-file=...|jsonpath=...|jsonpath-file=...]'
+#                     )
+
+# cagroup.add_argument('-s', '--shell',
+#                     type=str,
+#                     dest='shell',
+#                     help='Run shell on a selected pod'
+#                     )
+
+# sagroup.add_argument('-c', '--cmd',
+#                     type=str,
+#                     dest='cmd',
+#                     help='Custom command for `--shell` argument'
+#                     )
+
+# cagroup.add_argument('--cl', '--containers-list',
+#                     type=str,
+#                     dest='containers_list',
+#                     help='Get list of pod`s running containers'
+#                     )
+
+# sagroup.add_argument('--container',
+#                     type=str,
+#                     dest='container_name',
+#                     help='Operate with single container inside of multicontainer pod'
+#                     )
+
+# sagroup.add_argument('-A', '--all-namespaces',
+#                     action='store_true',
+#                     dest='all_namespaces',
+#                     help='Operate with resources from all namespaces'
+#                     )
+
+# cagroup.add_argument('-d', '--describe',
+#                     type=str,
+#                     dest='describe',
+#                     help='describe pod'
+#                     )
+
+# cagroup.add_argument('--logs',
+#                     type=str,
+#                     dest='logs',
+#                     help='logs from pod'
+#                     )
+
+# cagroup.add_argument('--del', '--delete',
+#                     type=str,
+#                     dest='delete',
+#                     help='delete pod'
+#                     )
+
+# cagroup.add_argument('-e', '--edit',
+#                     type=str,
+#                     dest='edit',
+#                     help='edit pod'
+#                     )
+
+# sagroup.add_argument('-t', '--trace',
+#                     action='store_true',
+#                     dest='trace',
+#                     help='trace real kubectl commands'
+#                     )
+
+# sagroup.add_argument('--labels',
+#                     type=str,
+#                     dest='labels',
+#                     help='Use label to filter out resources'
+#                     )
+
+# cagroup.add_argument('--wat',
+#                     action='store_true',
+#                     dest='wat',
+#                     help='Manual about kubernetes pods'
+#                     )
+
+# sagroup.add_argument('-v', '--version',
+#                     action='store_true',
+#                     dest='version',
+#                     help='show version of application'
+#                     )
+
+# args = parser.parse_args()
+
+# global out_suffix, kctl_bin, werbs, pod_shell
+
+# kctl_bin = "/dev/null"
+# pod_shell = ""
+
+# config=join(dirname(realpath(__file__)), 'ksx.json')
+
+# with open(config, 'r') as f:
+#     json = loads(f.read())
+#     pod_shell = args.cmd or json['shell'] if json['shell'] else '/bin/sh'
+#     kctl_bin = json['cmd'] if json['cmd'] else 'kubectl'
+
+# werbs = Werbs(config_path=config, out_format=args.output, labels=args.labels, kctl_bin=kctl_bin, all_ns=args.all_namespaces, trace=args.trace)
+
+# if args.output:
+#     out_suffix = " -o " + args.output
+# else:
+#     out_suffix = ""
+
+# def shell_to_pod(name):
+#     cmd = "{} exec --stdin --tty pods/{} -- {}".format(kctl_bin, name, pod_shell)
+#     if args.trace:
+#         ns = werbs.current_namespace()
+#         ctx = werbs.current_context()
+#         print("cmd: `{}`; namespace: `{}`; context: `{}`".format(cmd, ns, ctx))
+
+#     subprocess.call(cmd, shell=True)
+
+# def shell_to_pods_container(pod_name, container_name):
+#     cmd = "{} exec --stdin --tty pods/{} --container {} -- {}".format(kctl_bin, pod_name, container_name, pod_shell)
+#     if args.trace:
+#         ns = werbs.current_namespace()
+#         ctx = werbs.current_context()
+#         print("cmd: `{}`; namespace: `{}`; context: `{}`".format(cmd, ns, ctx))
+
+#     subprocess.call(cmd, shell=True)
+
+
+# def logs_to_pods_container(pod_name, container_name):
+#     cmd = "{} logs pods/{} --container {}".format(kctl_bin, pod_name, container_name)
+#     if args.trace:
+#         ns = werbs.current_namespace()
+#         ctx = werbs.current_context()
+#         print("cmd: `{}`; namespace: `{}`; context: `{}`".format(cmd, ns, ctx))
+
+#     subprocess.call(cmd, shell=True)
+
+
+# def containers_list(name):
+#     cmd = "{} get pods/{}".format(kctl_bin, name)
+#     cmd += " -o=jsonpath='{.spec.containers[*].name}'"
+#     out = subprocess.getoutput(cmd)
+#     return out
+
+    
+# if args.list:
+#     werbs.print_of("pods")
+# elif args.shell:
+#     if args.container_name:
+#         shell_to_pods_container(args.shell, args.container_name)
+#     else:
+#         shell_to_pod(args.shell)
+# elif args.containers_list:
+#     print(containers_list(args.containers_list))
+# elif args.describe:
+#     werbs.describe_of("pods/{}".format(args.describe))
+# elif args.delete:
+#     werbs.delete_of("pods/{}".format(args.delete))
+# elif args.edit:
+#     werbs.edit_of("pods/{}".format(args.edit))
+# elif args.logs:
+#     if args.container_name:
+#         logs_to_pods_container(args.logs, args.container_name)
+#     else:
+#         werbs.logs_of("pods/{}".format(args.logs))
+# elif args.wat:
+#     werbs.explain_of("pods")
+# elif args.version:
+#     werbs.print_version()
+# elif args.describe_pod_pos:
+#     werbs.describe_of("pods/{}".format(args.describe_pod_pos[0]))
+# else: # default action is "get namespaces"
+#     werbs.print_of("pods")

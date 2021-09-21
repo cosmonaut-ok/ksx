@@ -38,6 +38,12 @@ cagroup.add_argument('-d', '--describe',
                     help='describe sts'
                     )
 
+cagroup.add_argument('-r', '--remove',
+                    type=str,
+                    dest='remove',
+                    help='remove sts'
+                    )
+
 cagroup.add_argument('-e', '--edit',
                     type=str,
                     dest='edit',
@@ -74,7 +80,7 @@ global out_suffix, kctl_bin, werbs
 
 kctl_bin = "kubectl"
 
-config=join(dirname(realpath(__file__)), 'ks.json')
+config=join(dirname(realpath(__file__)), 'ksx.json')
 
 werbs = Werbs(config_path=config, out_format=args.output, labels=args.labels, kctl_bin=kctl_bin, all_ns=args.all_namespaces, trace=args.trace)
 
@@ -90,6 +96,8 @@ elif args.describe:
     werbs.describe_of("sts/{}".format(args.describe))
 elif args.edit:
     werbs.edit_of("sts/{}".format(args.edit))
+elif args.remove:
+    werbs.delete_of("sts/{}".format(args.delete))
 elif args.wat:
     werbs.explain_of("sts")
 elif args.version:

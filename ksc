@@ -27,6 +27,12 @@ cagroup.add_argument('-u', '--use-context',
                     help='Use context as current'
                     )
 
+sagroup.add_argument('-n', '--namespace',
+                    type=str,
+                    dest='namespace',
+                    help='Switch to namespace'
+                    )
+
 sagroup.add_argument('-t', '--trace',
                     action='store_true',
                     dest='trace',
@@ -41,7 +47,7 @@ sagroup.add_argument('-v', '--version',
 
 kctl_bin = "/dev/null"
 
-config=join(dirname(realpath(__file__)), 'ks.json')
+config=join(dirname(realpath(__file__)), 'ksx.json')
 
 with open(config, 'r') as f:
     json = loads(f.read())
@@ -91,10 +97,18 @@ if args.list:
     print_contexts()
 elif args.use_context:
     set_current_context(args.use_context)
+    if args.namespace:
+        cmd = join(dirname(realpath(__file__)), 'ksn') + " {}".format(args.namespace)
+        pit(cmd)
+        subprocess.call(cmd, shell=True)
 elif args.version:
     werbs.print_version()
 elif args.use_context_pos:
     set_current_context(args.use_context_pos[0])
+    if args.namespace:
+        cmd = join(dirname(realpath(__file__)), 'ksn') + " {}".format(args.namespace)
+        pit(cmd)
+        subprocess.call(cmd, shell=True)
 else:
     print(current_context())
 

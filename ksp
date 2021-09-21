@@ -112,7 +112,7 @@ global out_suffix, kctl_bin, werbs, pod_shell
 kctl_bin = "/dev/null"
 pod_shell = ""
 
-config=join(dirname(realpath(__file__)), 'ks.json')
+config=join(dirname(realpath(__file__)), 'ksx.json')
 
 with open(config, 'r') as f:
     json = loads(f.read())

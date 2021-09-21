@@ -6,7 +6,7 @@ from werbs import Werbs
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("describe_svc_pos", help="Get svc", type=str, nargs='*')
+parser.add_argument("describe_configmaps_pos", help="Get configmap", type=str, nargs='*')
 
 # command arguments group
 cagroup=parser.add_argument_group('Werb arguments')
@@ -35,13 +35,25 @@ sagroup.add_argument('-A', '--all-namespaces',
 cagroup.add_argument('-d', '--describe',
                     type=str,
                     dest='describe',
-                    help='describe svc'
+                    help='describe configmap'
+                    )
+
+cagroup.add_argument('--logs',
+                    type=str,
+                    dest='logs',
+                    help='logs from pod'
+                    )
+
+cagroup.add_argument('--del', '--delete',
+                    type=str,
+                    dest='delete',
+                    help='delete pod'
                     )
 
 cagroup.add_argument('-e', '--edit',
                     type=str,
                     dest='edit',
-                    help='edit svc'
+                    help='edit configmap'
                     )
 
 sagroup.add_argument('-t', '--trace',
@@ -56,16 +68,16 @@ sagroup.add_argument('--labels',
                     help='Use label to filter out resources'
                     )
 
+cagroup.add_argument('--wat',
+                    action='store_true',
+                    dest='wat',
+                    help='Manual about kubernetes configmap'
+                    )
+
 sagroup.add_argument('-v', '--version',
                     action='store_true',
                     dest='version',
                     help='show version of application'
-                    )
-
-cagroup.add_argument('--wat',
-                    action='store_true',
-                    dest='wat',
-                    help='Manual about kubernetes svc'
                     )
 
 args = parser.parse_args()
@@ -85,16 +97,20 @@ else:
 
     
 if args.list:
-    werbs.print_of("svc")
+    werbs.print_of("configmaps")
 elif args.describe:
-    werbs.describe_of("svc/{}".format(args.describe))
+    werbs.describe_of("configmaps/{}".format(args.describe))
 elif args.edit:
-    werbs.edit_of("svc/{}".format(args.edit))
+    werbs.edit_of("configmaps/{}".format(args.edit))
+elif args.delete:
+    werbs.delete_of("configmaps/{}".format(args.delete))
+elif args.logs:
+    werbs.logs_of("configmaps/{}".format(args.logs))
 elif args.wat:
-    werbs.explain_of("svc")
+    werbs.explain_of("configmaps")
 elif args.version:
     werbs.print_version()
-elif args.describe_svc_pos:
-    werbs.describe_of("svc/{}".format(args.describe_svc_pos[0]))
+elif args.describe_configmaps_pos:
+    werbs.describe_of("configmaps/{}".format(args.describe_configmaps_pos[0]))
 else: # default action is "get namespaces"
-    werbs.print_of("svc")
+    werbs.print_of("configmaps")
