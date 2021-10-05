@@ -1,43 +1,161 @@
 #!/usr/bin/env python3
 
 from os.path import join, realpath, dirname
-import os
+import os, sys
 import stat
+import subprocess
 import argparse
+import re
+from os.path import exists
+
+from werbs import Werbs
 
 import http.client, json
 from urllib.parse import urlparse
 
-# import subprocess, argparse
 # from werbs import Werbs
 # from json import loads
 
-# def http_get(domain, path, verbose=True):
-#     is_got = False
-#     conn = http.client.HTTPSConnection(domain)
-#     conn.request("GET", path)
-#     r1 = conn.getresponse()
+def http_get(domain, path, verbose=True):
+    is_got = False
+    conn = http.client.HTTPSConnection(domain)
+    conn.request("GET", path)
+    r1 = conn.getresponse()
     
-#     if verbose:
-#         print("Downloading {}{}".format(domain, path))
+    if verbose:
+        print("Downloading {}{}".format(domain, path))
 
-#     for i in range(10):
-#         if r1.status == 302 or r1.status == 301:
-#             redir = urlparse(r1.headers['Location'])
-#             if verbose:
-#                 print("Redirect to {}{}".format(redir.netloc, redir.path))
-#             conn = http.client.HTTPSConnection(redir.netloc)
-#             conn.request("GET", redir.path)
-#             r1 = conn.getresponse()
-#         else:
-#             is_got = True
-#             break
+    for i in range(10):
+        if r1.status == 302 or r1.status == 301:
+            redir = urlparse(r1.headers['Location'])
+            if verbose:
+                print("Redirect to {}{}".format(redir.netloc, redir.path))
+            conn = http.client.HTTPSConnection(redir.netloc)
+            conn.request("GET", redir.path)
+            r1 = conn.getresponse()
+        elif r1.status > 399:
+            raise Exception("Error {} occured, while downloading {}/{}".format(r1.status, domain, path))
+        else:
+            is_got = True
+            break
 
-#     if not is_got:
-#         raise("Can not get {}{}. Seems, infinite redirection loop".format(domain, path))
+    if not is_got:
+        raise Exception("Can not get {}{}. Seems, infinite redirection loop".format(domain, path))
 
-#     return r1.read()
-    
+    return r1.read()
+
+
+def install_kubectl(kubepath, kubeversion=None, verbose=True):
+    if not kubeversion:
+        kubeversion = http_get("dl.k8s.io", "/release/stable.txt", verbose).decode('utf-8')
+
+    if not re.match(r'^v', kubeversion):
+        kubeversion = 'v' + kubeversion
+
+    if verbose:
+        print("kubectl version is {}".format(kubeversion))
+
+    kubeversion_local = None
+    if exists(kubepath):
+        try:
+            cmd = "{} version --client=true -o json".format(kubepath)
+            kubeversion_local = json.loads(subprocess.check_output(cmd, shell=True))['clientVersion']['gitVersion']
+        except:
+            pass
+
+    if kubeversion_local != kubeversion:
+        kctl_bin = http_get("dl.k8s.io", "/release/{}/bin/linux/amd64/kubectl".format(kubeversion))
+
+        with open(kubepath, "wb") as f:
+            f.write(kctl_bin)
+
+        ## chmod +x
+        st = os.stat(kubepath)
+        os.chmod(kubepath, st.st_mode | stat.S_IEXEC)
+
+
+def genconfig (kubeconfig, kubepath, shell='/bin/bash', verbose=True):
+    ## setup config file
+    config = {
+        "cmd": kubepath,
+        "shell": shell
+    }
+
+    json_object = json.dumps(config, indent = 2)
+
+    if verbose:
+        print("Generating configfile")
+    with open(kubeconfig, "w") as outfile:
+        outfile.write(json_object)
+
+
+def init(kubeversion=None, kubeshell='/bin/bash', no_genconfig=False, verbose=True):
+    kctl_path=join(dirname(realpath(__file__)), 'kubectl')
+    config_path=join(dirname(realpath(__file__)), 'ksx.json')
+
+    install_kubectl(kctl_path, kubeversion, verbose)
+
+    if not no_genconfig:
+        genconfig(config_path, kctl_path, kubeshell, verbose)
+
+
+def main ():
+    parser = argparse.ArgumentParser(description='ksx is a collection of kubernetes management tools. This script is for service operations')
+
+    parser.add_argument('-i', '--info',
+                        action='store_true',
+                        dest='info',
+                        help='Show info about ksx tools'
+                        )
+
+    parser.add_argument('--init',
+                        action='store_true',
+                        dest='init',
+                        help='Preform initial configuration (e.g. install embedded kubectl, generate config etc)'
+                        )
+
+    parser.add_argument('-v', '--verbose',
+                        action='count',
+                        default=0)
+
+    parser.add_argument('--version',
+                        action='store_true',
+                        help='Print ksx version and exit',
+                        default=None
+                        )
+
+    parser.add_argument('--kubectl-version',
+                        dest='kubeversion',
+                        type=str,
+                        help='Install specified kubectl version (default: current stable)',
+                        default=None
+                        )
+
+    parser.add_argument('--no-genconfig',
+                        action='store_true',
+                        dest='nogenconfig',
+                        help='Show info about ksx tools'
+                        )
+
+    parser.add_argument('--kubectl-shell',
+                        dest='kubeshell',
+                        type=str,
+                        help='Use specific shell as default to enter the pod (default: /bin/bash)',
+                        default='/bin/bash'
+                        )
+
+    args = parser.parse_args()
+
+    if args.info:
+        show_extended_help()
+    elif args.init:
+        init(args.kubeversion, args.kubeshell, args.nogenconfig, args.verbose)
+    elif args.version:
+        werbs = Werbs()
+        werbs.print_version()
+    else:
+        parser.print_help(sys.stderr)
+
 # kubeversion = http_get("dl.k8s.io", "/release/stable.txt").decode('utf-8')
 # print("kubectl version is {}".format(kubeversion))
 
@@ -69,17 +187,8 @@ from urllib.parse import urlparse
 
 # ^^^^^^^^^^^^^^^^^^^^ DONE ^^^^^^^^^^^^^^^^^^^^
 
-parser = argparse.ArgumentParser()
 
-# parser.add_argument("describe_pod_pos", help="Get pod", type=str, nargs='*')
-
-# # command arguments group
-# cagroup=parser.add_argument_group('Werb arguments')
-
-# # service arguments group
-# sagroup=parser.add_argument_group('Service arguments')
-
-# cagroup.add_argument('-l', '--list',
+# parser.add_argument('-l', '--list',
 #                     action='store_true',
 #                     dest='list',
 #                     help='Suppress Output'
@@ -254,3 +363,51 @@ parser = argparse.ArgumentParser()
 #     werbs.describe_of("pods/{}".format(args.describe_pod_pos[0]))
 # else: # default action is "get namespaces"
 #     werbs.print_of("pods")
+
+def show_extended_help ():
+    print('''ksX is a collection of tools for kubernetes, wrapped over standard
+kubernetes control tool `kubectl`.  The motivation of ksX is to
+develop more `laconic` kubectl, that also follows unix way principle:
+`Make each program do one thing well` and principle of least
+astonishment. So, each ksX's tool is very simple and bound to some
+kubernetes resouce, like `pod`, `ingress` etc. The list of ksX tools:
+
+ksc\t- operate with contexts
+kscj\t- operate with cronjobs
+kscm\t- operate with configmaps
+ksd\t- operate with deployments
+ksi\t- operate with ingress
+ksj\t- operate with jobs
+ksn\t- operate with namespaces
+ksp\t- operate with pods
+kspv\t- operate with persistant volumes
+kspvc\t- operate with persistant volume claims
+kss\t- operate with services
+ksts\t- operate with stateful sets
+
+OPTIONS (common for all tools):
+  one optional positional argument
+  with default action (depends on tool):
+  -h, --help\t\t\t\tshow help message and exit
+  -l, --list\t\t\t\tlist of objects of selected type
+  -d <OBJECT>, --describe <OBJECT>\tdescribe object
+  -e <OBJECT>, --edit <OBJECT>\t\tedit object
+  --del <OBJECT>, --delete <OBJECT>\tdelete object (deprecated), see --remove
+  --scale <OBJECT>\t\t\tscale object. Use only with --rpl, --replicas
+  --rpl <NUMBER>, --replicas <NUMBER>\tNumber of replicas to scale
+  --r, <OBJECT>, --remove <OBJECT>\tremove (delete) object
+  --wat\t\t\t\t\tManual about object operations (like kubectl explain)
+  -o <OUTPUT>, --output <OUTPUT>\toutput format, based on original kubectl types:
+\t\t\t\t\t json|yaml|wide|custom-
+\t\t\t\t\t columns=...|custom-columns-file=...|go-
+\t\t\t\t\t template=...|go-template-
+\t\t\t\t\t file=...|jsonpath=...|jsonpath-file=...]
+  -t, --trace\t\t\t\tprint real kubectl commands
+  -v, --version\t\t\t\tshow version of application
+  --labels LABELS\t\t\tUse label to filter out objects
+''')
+
+
+
+if __name__ == "__main__":
+    main()

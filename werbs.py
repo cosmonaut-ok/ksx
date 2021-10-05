@@ -2,29 +2,30 @@ from json import loads, dumps
 import subprocess
 from simple_term_menu import TerminalMenu
 
-class Werbs():
+class Werbs():    
     def __init__(self, out_format=None, pod_shell="/bin/bash", kctl_bin="kubectl", all_ns=False, trace=False, labels=None, config_path=None):
 
-        json = loads(open(config_path).read())
+        if config_path:
+            json = loads(open(config_path).read())
 
-        # self.out_suffix = out_suffix
-        self.shell = json['shell'] if json['shell'] else '/bin/sh'
-        self.kctl = json['cmd'] if json['cmd'] else 'kubectl'
-        if all_ns:
-            self.all_ns = " --all-namespaces "
-        else:
-            self.all_ns = ""
+            # self.out_suffix = out_suffix
+            self.shell = json['shell'] if json['shell'] else '/bin/sh'
+            self.kctl = json['cmd'] if json['cmd'] else 'kubectl'
+            if all_ns:
+                self.all_ns = " --all-namespaces "
+            else:
+                self.all_ns = ""
 
-        self.trace = trace
-        self.labels = labels
+            self.trace = trace
+            self.labels = labels
 
-        self.out_suffix = ""
-        if out_format:
-            self.out_suffix = " -o " + out_format
+            self.out_suffix = ""
+            if out_format:
+                self.out_suffix = " -o " + out_format
 
-        self.labels = ""
-        if labels:
-            self.labels = " -l " + labels
+            self.labels = ""
+            if labels:
+                self.labels = " -l " + labels
 
 
     def __pit(self, string):

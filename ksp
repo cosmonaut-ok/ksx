@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/home/cosmonaut/dev/kubectl_tools/python/install/bin/python3.8
 
 from os.path import join, realpath, dirname
 import subprocess, argparse

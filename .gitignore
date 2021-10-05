@@ -2,3 +2,5 @@
 ./ksx.json
 *~
 __pycache__
+.venvdir
+target/
