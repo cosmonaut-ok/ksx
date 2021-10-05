@@ -132,15 +132,20 @@ class Werbs():
         ## kubectl get deployment -o json | jq .items[0].spec.template.spec.containers[*].name
         cmd = "{} get {}/{} -o json".format(self.kctl, item_type, name)
 
+        out_str = ''
+        container_list = []
+        try:
+            out_str = subprocess.check_output(cmd, shell=True)
+            container_list = loads(subprocess.check_output(cmd, shell=True))["spec"]["template"]["spec"]["containers"]
+        except KeyError: # seems, it`s pod-like json structure
+            container_list = loads(subprocess.check_output(cmd, shell=True))["spec"]["containers"]
+        except subprocess.CalledProcessError:
+            raise NameError("No such object {}/{}".format(item_type, name))
+
         containers = []
 
-        # try to check deployment-like and pod-like schemes
-        try:
-            for i in loads(subprocess.check_output(cmd, shell=True))["spec"]["template"]["spec"]["containers"]:
-                containers.append(i["name"])
-        except:
-            for i in loads(subprocess.check_output(cmd, shell=True))["spec"]["containers"]:
-                containers.append(i["name"])
+        for i in container_list:
+            containers.append(i["name"])
 
         self.__pit(cmd)
         return containers
@@ -149,12 +154,13 @@ class Werbs():
     def shell_to_container(self, object_type, object_name, container_name):
         cmd = "{} exec --stdin --tty {}/{} --container {} -- {}".format(self.kctl, object_type, object_name, container_name, self.shell)
         self.__pit(cmd)
-        status = subprocess.call(cmd, shell=True)
-        if status > 0:
-            print("ERROR occured during login with {}. Falling back to /bin/sh".format(self.shell))
-            cmd = "{} exec --stdin --tty {}/{} --container {} -- /bin/sh".format(self.kctl, object_type, object_name, container_name)
-            self.__pit(cmd)
-            subprocess.call(cmd, shell=True)
+        subprocess.call(cmd, shell=True)
+        # status = subprocess.call(cmd, shell=True)
+        # if status > 0:
+        #     print("ERROR occured during login with {}. Falling back to /bin/sh".format(self.shell))
+        #     cmd = "{} exec --stdin --tty {}/{} --container {} -- /bin/sh".format(self.kctl, object_type, object_name, container_name)
+        #     self.__pit(cmd)
+        #     subprocess.call(cmd, shell=True)
 
 
     def logs_to_container(self, object_type, object_name, container_name):
@@ -163,27 +169,29 @@ class Werbs():
         subprocess.call(cmd, shell=True)
 
 
+    def __select_container_name(self, containers):
+        container_name = ''
+        if len(containers) > 1:
+            terminal_menu = TerminalMenu(containers)
+            menu_entry_index = terminal_menu.show()
+            container_name = containers[menu_entry_index]
+        else:
+            container_name = containers[0]
+
+        return container_name
+
+
     def shell_to_object(self, object_type, object_name):
         container_names = self.list_of_containers(object_type, object_name)
-        container_name = ''
-        if len(container_names) > 1:
-            terminal_menu = TerminalMenu(container_names)
-            menu_entry_index = terminal_menu.show()
-            container_name = container_names[menu_entry_index]
-        else:
-            container_name = container_names[0]
+        container_name = self.__select_container_name(container_names)
+
         self.shell_to_container(object_type, object_name, container_name)
 
 
     def logs_to_object(self, object_type, object_name):
         container_names = self.list_of_containers(object_type, object_name)
-        container_name = ''
-        if len(container_names) > 1:
-            terminal_menu = TerminalMenu(container_names)
-            menu_entry_index = terminal_menu.show()
-            container_name = container_names[menu_entry_index]
-        else:
-            container_name = container_names[0]
+        container_name = self.__select_container_name(container_names)
+
         self.logs_to_container(object_type, object_name, container_name)
 
 
