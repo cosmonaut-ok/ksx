@@ -26,8 +26,8 @@ all: .venv .deps
 			--remove-output \
 			--plugin-disable=tk-inter \
 			--include-module=site; \
-		cp -r -f -n $(TARGETDIR)/$${i}.dist/* $(TARGETDIR/ksx; \
-		ln -sf $(TARGETDIR)/ksx/$${i} $(TARGETDIR/ksx/bin/; \
+		cp -r -f -n $(TARGETDIR)/$${i}.dist/* $(TARGETDIR)/ksx; \
+		ln -sf $(TARGETDIR)/ksx/$${i} $(TARGETDIR)/ksx/bin/; \
 	done
 	cp ksx.json $(TARGETDIR)/ksx/etc
 
