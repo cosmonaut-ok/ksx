@@ -3,70 +3,73 @@
 from os.path import join, realpath, dirname
 import os
 import stat
+import argparse
+
+import http.client, json
+from urllib.parse import urlparse
 
 # import subprocess, argparse
 # from werbs import Werbs
 # from json import loads
 
-import http.client, json
-from urllib.parse import urlparse
-
-def http_get(domain, path, verbose=True):
-    is_got = False
-    conn = http.client.HTTPSConnection(domain)
-    conn.request("GET", path)
-    r1 = conn.getresponse()
+# def http_get(domain, path, verbose=True):
+#     is_got = False
+#     conn = http.client.HTTPSConnection(domain)
+#     conn.request("GET", path)
+#     r1 = conn.getresponse()
     
-    if verbose:
-        print("Downloading {}{}".format(domain, path))
+#     if verbose:
+#         print("Downloading {}{}".format(domain, path))
 
-    for i in range(10):
-        if r1.status == 302 or r1.status == 301:
-            redir = urlparse(r1.headers['Location'])
-            if verbose:
-                print("Redirect to {}{}".format(redir.netloc, redir.path))
-            conn = http.client.HTTPSConnection(redir.netloc)
-            conn.request("GET", redir.path)
-            r1 = conn.getresponse()
-        else:
-            is_got = True
-            break
+#     for i in range(10):
+#         if r1.status == 302 or r1.status == 301:
+#             redir = urlparse(r1.headers['Location'])
+#             if verbose:
+#                 print("Redirect to {}{}".format(redir.netloc, redir.path))
+#             conn = http.client.HTTPSConnection(redir.netloc)
+#             conn.request("GET", redir.path)
+#             r1 = conn.getresponse()
+#         else:
+#             is_got = True
+#             break
 
-    if not is_got:
-        raise("Can not get {}{}. Seems, infinite redirection loop".format(domain, path))
+#     if not is_got:
+#         raise("Can not get {}{}. Seems, infinite redirection loop".format(domain, path))
 
-    return r1.read()
+#     return r1.read()
     
-kubeversion = http_get("dl.k8s.io", "/release/stable.txt").decode('utf-8')
-print("kubectl version is {}".format(kubeversion))
+# kubeversion = http_get("dl.k8s.io", "/release/stable.txt").decode('utf-8')
+# print("kubectl version is {}".format(kubeversion))
 
-kctl_bin = http_get("dl.k8s.io", "/release/{}/bin/linux/amd64/kubectl".format(kubeversion))
+# kctl_bin = http_get("dl.k8s.io", "/release/{}/bin/linux/amd64/kubectl".format(kubeversion))
 
-kctl_path=join(dirname(realpath(__file__)), 'kubectl')
+# kctl_path=join(dirname(realpath(__file__)), 'kubectl')
 
-with open(kctl_path, "wb") as f:
-    f.write(kctl_bin)
+# with open(kctl_path, "wb") as f:
+#     f.write(kctl_bin)
 
-## setup config file
-config = {
-    "cmd": "kubectl",
-    "shell": "/bin/bash"
-}
+# ## setup config file
+# config = {
+#     "cmd": "kubectl",
+#     "shell": "/bin/bash"
+# }
 
-config['cmd'] = kctl_path
+# config['cmd'] = kctl_path
 
-json_object = json.dumps(config, indent = 2)
+# json_object = json.dumps(config, indent = 2)
 
-config_path=join(dirname(realpath(__file__)), 'ksx.json')
+# config_path=join(dirname(realpath(__file__)), 'ksx.json')
 
-with open(config_path, "w") as outfile:
-    outfile.write(json_object)
+# with open(config_path, "w") as outfile:
+#     outfile.write(json_object)
 
-## chmod +x
-st = os.stat(kctl_path)
-os.chmod(kctl_path, st.st_mode | stat.S_IEXEC)
+# ## chmod +x
+# st = os.stat(kctl_path)
+# os.chmod(kctl_path, st.st_mode | stat.S_IEXEC)
 
-# parser = argparse.ArgumentParser()
+# ^^^^^^^^^^^^^^^^^^^^ DONE ^^^^^^^^^^^^^^^^^^^^
+
+parser = argparse.ArgumentParser()
 
 # parser.add_argument("describe_pod_pos", help="Get pod", type=str, nargs='*')
 

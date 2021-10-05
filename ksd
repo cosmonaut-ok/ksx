@@ -3,6 +3,7 @@
 from os.path import join, realpath, dirname
 import subprocess, argparse
 from werbs import Werbs
+from simple_term_menu import TerminalMenu
 
 parser = argparse.ArgumentParser()
 
@@ -15,33 +16,51 @@ cagroup=parser.add_argument_group('Werb arguments')
 sagroup=parser.add_argument_group('Service arguments')
 
 cagroup.add_argument('-l', '--list',
-                    action='store_true',
-                    dest='list',
-                    help='Suppress Output'
-                    )
+                     action='store_true',
+                     dest='list',
+                     help='Suppress Output'
+                     )
 
 sagroup.add_argument('-o', '--output',
-                    type=str,
-                    dest='output',
-                    help='output format json|yaml|wide|custom-columns=...|custom-columns-file=...|go-template=...|go-template-file=...|jsonpath=...|jsonpath-file=...]'
-                    )
+                     type=str,
+                     dest='output',
+                     help='output format json|yaml|wide|custom-columns=...|custom-columns-file=...|go-template=...|go-template-file=...|jsonpath=...|jsonpath-file=...]'
+                     )
 
 sagroup.add_argument('-A', '--all-namespaces',
-                    action='store_true',
-                    dest='all_namespaces',
-                    help='Operate with resources from all namespaces'
-                    )
+                     action='store_true',
+                     dest='all_namespaces',
+                     help='Operate with resources from all namespaces'
+                     )
+
+sagroup.add_argument('--rpl', '--replicas',
+                     type=int,
+                     dest='replicas',
+                     help='Set number of replicas to scale deployment'
+                     )
 
 cagroup.add_argument('-d', '--describe',
-                    type=str,
-                    dest='describe',
-                    help='describe deployments'
-                    )
+                     type=str,
+                     dest='describe',
+                     help='describe deployments'
+                     )
 
 cagroup.add_argument('-e', '--edit',
                     type=str,
                     dest='edit',
                     help='edit deployments'
+                    )
+
+cagroup.add_argument('-s', '--shell',
+                    type=str,
+                    dest='shell',
+                    help='login deployment`s container'
+                    )
+
+cagroup.add_argument('--scale',
+                    type=str,
+                    dest='scale',
+                    help='scale deployments'
                     )
 
 cagroup.add_argument('--del', '--delete',
@@ -50,10 +69,22 @@ cagroup.add_argument('--del', '--delete',
                     help='delete pod'
                     )
 
+cagroup.add_argument('--cl', '--containers-list',
+                    type=str,
+                    dest='containers_list',
+                    help='Get list of pod`s running containers'
+                    )
+
 sagroup.add_argument('-t', '--trace',
                     action='store_true',
                     dest='trace',
                     help='trace real kubectl commands'
+                    )
+
+sagroup.add_argument('--container',
+                    type=str,
+                    dest='container_name',
+                    help='Operate with single container inside of deployment'
                     )
 
 sagroup.add_argument('--labels',
@@ -96,6 +127,11 @@ elif args.describe:
     werbs.describe_of("deployments/{}".format(args.describe))
 elif args.edit:
     werbs.edit_of("deployments/{}".format(args.edit))
+elif args.scale:
+    if isinstance (args.replicas,int):
+        werbs.scale_of("deployments/{}".format(args.scale), args.replicas)
+    else:
+        raise TypeError("argument --replicas must be passed")
 elif args.delete:
     werbs.delete_of("deployments/{}".format(args.delete))
 elif args.wat:
@@ -104,5 +140,12 @@ elif args.version:
     werbs.print_version()
 elif args.describe_deployments_pos:
     werbs.describe_of("deployments/{}".format(args.describe_deployments_pos[0]))
+elif args.containers_list:
+    print(werbs.list_of_containers("deployment", args.containers_list))
+elif args.shell:
+    if args.container_name:
+        werbs.shell_to_container("deployment", args.shell, args.container_name)
+    else:
+        werbs.shell_to_object("deployment", args.shell)
 else: # default action is "get namespaces"
     werbs.print_of("deployments")

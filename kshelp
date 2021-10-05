@@ -27,7 +27,10 @@ OPTIONS (common for all tools):
   -l, --list\t\t\t\tlist of objects of selected type
   -d <OBJECT>, --describe <OBJECT>\tdescribe object
   -e <OBJECT>, --edit <OBJECT>\t\tedit object
-  --del <OBJECT>, --delete <OBJECT>\tdelete object
+  --del <OBJECT>, --delete <OBJECT>\tdelete object (deprecated), see --remove
+  --scale <OBJECT>\t\t\tscale object. Use only with --rpl, --replicas
+  --rpl <NUMBER>, --replicas <NUMBER>\tNumber of replicas to scale
+  --r, <OBJECT>, --remove <OBJECT>\tremove (delete) object
   --wat\t\t\t\t\tManual about object operations (like kubectl explain)
   -o <OUTPUT>, --output <OUTPUT>\toutput format, based on original kubectl types:
 \t\t\t\t\t json|yaml|wide|custom-

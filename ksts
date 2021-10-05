@@ -50,10 +50,28 @@ cagroup.add_argument('-e', '--edit',
                     help='edit sts'
                     )
 
+cagroup.add_argument('--del', '--delete',
+                    type=str,
+                    dest='delete',
+                    help='delete pod'
+                    )
+
+cagroup.add_argument('-s', '--shell',
+                    type=str,
+                    dest='shell',
+                    help='login STS`s container'
+                    )
+
 sagroup.add_argument('-t', '--trace',
                     action='store_true',
                     dest='trace',
                     help='trace real kubectl commands'
+                    )
+
+sagroup.add_argument('--container',
+                    type=str,
+                    dest='container_name',
+                    help='Operate with single container inside of deployment'
                     )
 
 sagroup.add_argument('--labels',
@@ -96,13 +114,20 @@ elif args.describe:
     werbs.describe_of("sts/{}".format(args.describe))
 elif args.edit:
     werbs.edit_of("sts/{}".format(args.edit))
+elif args.delete:
+    print("There is no --delete argument. Do you mean --remove ?")
 elif args.remove:
-    werbs.delete_of("sts/{}".format(args.delete))
+    werbs.delete_of("sts/{}".format(args.remove))
 elif args.wat:
     werbs.explain_of("sts")
 elif args.version:
     werbs.print_version()
 elif args.describe_sts_pos:
     werbs.describe_of("sts/{}".format(args.describe_sts_pos[0]))
+elif args.shell:
+    if args.container_name:
+        werbs.shell_to_container("sts", args.shell, args.container_name)
+    else:
+        werbs.shell_to_object("sts", args.shell)
 else: # default action is "get namespaces"
     werbs.print_of("sts")

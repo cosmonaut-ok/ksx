@@ -1,5 +1,9 @@
 kwX - kubectl wrapper eXtensible.
 
+# TODO:
+
+implement --watch subargument
+
 ksTools - is a set of tools, wrapped over kubectl and following unixway design of command line tools:
 
 - each tool do one thing well

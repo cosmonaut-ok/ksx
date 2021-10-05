@@ -126,62 +126,66 @@ if args.output:
 else:
     out_suffix = ""
 
-def shell_to_pod(name):
-    cmd = "{} exec --stdin --tty pods/{} -- {}".format(kctl_bin, name, pod_shell)
-    if args.trace:
-        ns = werbs.current_namespace()
-        ctx = werbs.current_context()
-        print("cmd: `{}`; namespace: `{}`; context: `{}`".format(cmd, ns, ctx))
+# def shell_to_pod(name):
+#     cmd = "{} exec --stdin --tty pods/{} -- {}".format(kctl_bin, name, pod_shell)
+#     if args.trace:
+#         ns = werbs.current_namespace()
+#         ctx = werbs.current_context()
+#         print("cmd: `{}`; namespace: `{}`; context: `{}`".format(cmd, ns, ctx))
 
-    subprocess.call(cmd, shell=True)
-
-def shell_to_pods_container(pod_name, container_name):
-    cmd = "{} exec --stdin --tty pods/{} --container {} -- {}".format(kctl_bin, pod_name, container_name, pod_shell)
-    if args.trace:
-        ns = werbs.current_namespace()
-        ctx = werbs.current_context()
-        print("cmd: `{}`; namespace: `{}`; context: `{}`".format(cmd, ns, ctx))
-
-    subprocess.call(cmd, shell=True)
+#     subprocess.call(cmd, shell=True)
 
 
-def logs_to_pods_container(pod_name, container_name):
-    cmd = "{} logs pods/{} --container {}".format(kctl_bin, pod_name, container_name)
-    if args.trace:
-        ns = werbs.current_namespace()
-        ctx = werbs.current_context()
-        print("cmd: `{}`; namespace: `{}`; context: `{}`".format(cmd, ns, ctx))
+# def shell_to_pods_container(pod_name, container_name):
+#     cmd = "{} exec --stdin --tty pods/{} --container {} -- {}".format(kctl_bin, pod_name, container_name, pod_shell)
+#     if args.trace:
+#         ns = werbs.current_namespace()
+#         ctx = werbs.current_context()
+#         print("cmd: `{}`; namespace: `{}`; context: `{}`".format(cmd, ns, ctx))
 
-    subprocess.call(cmd, shell=True)
+#     subprocess.call(cmd, shell=True)
 
 
-def containers_list(name):
-    cmd = "{} get pods/{}".format(kctl_bin, name)
-    cmd += " -o=jsonpath='{.spec.containers[*].name}'"
-    out = subprocess.getoutput(cmd)
-    return out
+# def logs_to_pods_container(pod_name, container_name):
+#     cmd = "{} logs pods/{} --container {}".format(kctl_bin, pod_name, container_name)
+#     if args.trace:
+#         ns = werbs.current_namespace()
+#         ctx = werbs.current_context()
+#         print("cmd: `{}`; namespace: `{}`; context: `{}`".format(cmd, ns, ctx))
+
+#     subprocess.call(cmd, shell=True)
+
+# def containers_list(name):
+#     cmd = "{} get pods/{}".format(kctl_bin, name)
+#     cmd += " -o=jsonpath='{.spec.containers[*].name}'"
+#     print(cmd)
+#     out = subprocess.getoutput(cmd)
+#     return out
 
     
 if args.list:
     werbs.print_of("pods")
 elif args.shell:
     if args.container_name:
-        shell_to_pods_container(args.shell, args.container_name)
+        werbs.shell_to_container("pod", args.shell, args.container_name)
     else:
-        shell_to_pod(args.shell)
-elif args.containers_list:
-    print(containers_list(args.containers_list))
+        werbs.shell_to_object("pod", args.shell)
+# elif args.containers_list:
+#     print(containers_list(args.containers_list))
 elif args.describe:
     werbs.describe_of("pods/{}".format(args.describe))
 elif args.delete:
     werbs.delete_of("pods/{}".format(args.delete))
 elif args.edit:
     werbs.edit_of("pods/{}".format(args.edit))
+elif args.containers_list:
+    print(werbs.list_of_containers("pods", args.containers_list))
 elif args.logs:
     if args.container_name:
-        logs_to_pods_container(args.logs, args.container_name)
+        werbs.logs_to_container("pods", args.logs, args.container_name)
     else:
-        werbs.logs_of("pods/{}".format(args.logs))
+        werbs.logs_to_object("pods", args.logs)
+        # werbs.logs_of("pods/{}".format(args.logs))
 elif args.wat:
     werbs.explain_of("pods")
 elif args.version:
