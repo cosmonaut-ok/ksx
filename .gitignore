@@ -5,3 +5,4 @@ __pycache__
 .venvdir
 target/
 *.tar.gz
+kubectl
