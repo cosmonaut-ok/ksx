@@ -37,3 +37,6 @@ dist:
 # python:
 # 	wget https://github.com/indygreg/python-build-standalone/releases/download/20210724/cpython-3.8.11-x86_64-unknown-linux-musl-noopt-20210724T1424.tar.zst -O /tmp/.cpython.tar.zst
 # 	tar -xvf /tmp/.cpython.tar.zst
+
+clean:
+	rm -rf $(TARGETDIR)
