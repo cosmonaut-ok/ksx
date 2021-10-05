@@ -27,7 +27,7 @@ all: .venv .deps
 			--plugin-disable=tk-inter \
 			--include-module=site; \
 		cp -r -f -n $(TARGETDIR)/$${i}.dist/* $(TARGETDIR)/ksx; \
-		ln -sf $(TARGETDIR)/ksx/$${i} $(TARGETDIR)/ksx/bin/; \
+		ln -sf ../ksx/$${i} $(TARGETDIR)/ksx/bin/; \
 	done
 	cp ksx.json $(TARGETDIR)/ksx/etc
 
@@ -39,4 +39,4 @@ dist:
 # 	tar -xvf /tmp/.cpython.tar.zst
 
 clean:
-	rm -rf $(TARGETDIR)
+	rm -rf $(TARGETDIR) __pycache__
