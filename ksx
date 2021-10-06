@@ -64,7 +64,7 @@ def install_kubectl(kubepath, kubeversion=None, verbose=False):
         try:
             cmd = "{} version --client=true -o json".format(kubepath)
             kubeversion_local = json.loads(subprocess.check_output(cmd, shell=True))['clientVersion']['gitVersion']
-        except:
+        except FileExistsError:
             pass
 
     if kubeversion_local != kubeversion:
@@ -96,7 +96,10 @@ def genconfig (kubeconfig, kubepath, shell='/bin/bash', verbose=False):
 def genfiles (apiconfig, verbose=False):
 
     ## create directory
-    os.makedirs("bin")
+    try:
+        os.makedirs("bin")
+    except:
+        pass
 
     api_config = []
     with open(apiconfig, 'r') as f:
