@@ -1,7 +1,7 @@
-GLOBAL_API_CONFIG =
-[
+GLOBAL_API_CONFIG = [
     {
         "name": "pods",
+        "description": "Operate with pods",
         "filename": "ksp",
         "has_list": True,
         "has_output": True,
@@ -17,6 +17,7 @@ GLOBAL_API_CONFIG =
     },
     {
 	"name": "deployments",
+        "description": "Operate with deployments",
 	"filename": "ksd",
 	"has_list": True,
 	"has_output": True,
@@ -32,6 +33,7 @@ GLOBAL_API_CONFIG =
     },
     {
 	"name": "sts",
+        "description": "Operate with sts",
 	"filename": "ksts",
 	"has_list": True,
 	"has_output": True,
@@ -47,6 +49,7 @@ GLOBAL_API_CONFIG =
     },
     {
 	"name": "jobs",
+        "description": "Operate with jobs",
 	"filename": "ksj",
 	"has_list": True,
 	"has_output": True,
@@ -62,6 +65,7 @@ GLOBAL_API_CONFIG =
     },
     {
 	"name": "cronjobs",
+        "description": "Operate with cronjobs",
 	"filename": "kscj",
 	"has_list": True,
 	"has_output": True,
@@ -77,6 +81,7 @@ GLOBAL_API_CONFIG =
     },
     {
 	"name": "configmaps",
+        "description": "Operate with configmaps",
 	"filename": "kscm",
 	"has_list": True,
 	"has_output": True,
@@ -92,6 +97,7 @@ GLOBAL_API_CONFIG =
     },
     {
 	"name": "ingress",
+        "description": "Operate with ingress",
 	"filename": "ksi",
 	"has_list": True,
 	"has_output": True,
@@ -107,6 +113,7 @@ GLOBAL_API_CONFIG =
     },
     {
 	"name": "pv",
+        "description": "Operate with pv",
 	"filename": "kspv",
 	"has_list": True,
 	"has_output": True,
@@ -122,6 +129,7 @@ GLOBAL_API_CONFIG =
     },
     {
 	"name": "pvc",
+        "description": "Operate with pvc",
 	"filename": "kspvc",
 	"has_list": True,
 	"has_output": True,
@@ -137,6 +145,7 @@ GLOBAL_API_CONFIG =
     },
     {
 	"name": "svc",
+        "description": "Operate with svc",
 	"filename": "kss",
 	"has_list": True,
 	"has_output": True,
@@ -152,6 +161,7 @@ GLOBAL_API_CONFIG =
     },
     {
 	"name": "endpoints",
+        "description": "Operate with endpoints",
 	"filename": "ksep",
 	"has_list": True,
 	"has_output": True,

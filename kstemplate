@@ -11,6 +11,7 @@ from api_res import ApiRes
 
 def main ():
     res = ApiRes("$name",
+                 description="$description",
                  has_list=$has_list,
                  has_output=$has_output,
                  has_shell=$has_shell,

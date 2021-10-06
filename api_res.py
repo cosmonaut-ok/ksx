@@ -5,9 +5,9 @@ from json import loads, dumps
 
 
 class ApiRes():
-    def __init__(self, name, has_list, has_output, has_shell, has_containers,
-                 has_all_ns, has_describe, has_logs, has_remove, has_edit,
-                 has_labels, has_info):
+    def __init__(self, name, description, has_list, has_output, has_shell,
+                 has_containers, has_all_ns, has_describe, has_logs, has_remove,
+                 has_edit, has_labels, has_info):
 
         self.name = name
         self.has_list = has_list
@@ -22,7 +22,7 @@ class ApiRes():
         self.has_labels = has_labels
         self.has_info = has_info
 
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(description=description)
 
         parser.add_argument("describe_res_pos",
                             type=str,
