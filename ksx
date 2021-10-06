@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
-from os.path import join, realpath, dirname
-from os import makedirs
 import os, sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+
+from os.path import join, realpath, dirname, exists
+from os import makedirs
+
 import stat
 import subprocess
 import argparse
 import re
-from os.path import exists
 
 from werbs import Werbs
 
@@ -16,13 +18,11 @@ from urllib.parse import urlparse
 
 from string import Template # native templating
 
+import apis
+
 global am_i_bin, global_api_config
 
 am_i_bin = False
-
-## include global api config
-global_api_config = []
-## end of include global api config
 
 def http_get(domain, path, verbose=False):
     is_got = False
@@ -105,12 +105,13 @@ def genfiles (apiconfig, verbose=False):
     except:
         pass
 
-    api_config = []
-    if am_i_bin:
-        api_config = global_api_config
-    else:
-        with open(apiconfig, 'r') as f:
-            api_config = json.loads(f.read())
+    api_config = apis.GLOBAL_API_CONFIG
+    # api_config = []
+    # if am_i_bin:
+    #     api_config = global_api_config
+    # else:
+    #     with open(apiconfig, 'r') as f:
+    #         api_config = json.loads(f.read())
 
     for i in api_config:
         result = ""
