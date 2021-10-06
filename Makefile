@@ -5,6 +5,7 @@ PYBIN := $(shell if test ${USE_VENV} = "yes"; then echo ${TMPDIR}/bin/python; el
 THISDIRNAME=$(shell basename $(PWD))
 DISTDIR := dist
 TARGETDIR := target
+PYTHONPATH := $(PYTHONPATH):$(shell realpath -P .)
 
 ## prepare python virtualenv
 .venv:
@@ -18,9 +19,9 @@ TARGETDIR := target
 
 all: .venv .deps
 	mkdir -p $(TARGETDIR)/ksx/bin $(TARGETDIR)/ksx/etc
-	sed 's/^am_i_bin.*/am_i_bin\ =\ True/g' ksx # change to True before compilation
+	sed 's/^am_i_bin.*/am_i_bin\ =\ True/g' ksx > bin/ksx # change to True before compilation
 	for i in ksc kscj kscm ksd kshelp ksi ksj ksn ksp kspv kspvc kss ksts ksx; do \
-		$(PYBIN) -m nuitka $$i \
+		$(PYBIN) -m nuitka bin/$$i \
 			--standalone \
 			--follow-imports \
 			--output-dir=$(TARGETDIR) \
@@ -31,7 +32,6 @@ all: .venv .deps
 		ln -sf ../$${i} $(TARGETDIR)/ksx/bin/; \
 	done
 	cp ksx.json $(TARGETDIR)/ksx/etc
-	sed 's/^am_i_bin.*/am_i_bin\ =\ False/g' ksx # change back to False
 
 dist:
 	tar -cvzpf ksx.tar.gz $(TARGETDIR)/ksx

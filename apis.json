@@ -148,5 +148,20 @@
 	"has_edit": true,
 	"has_labels": true,
 	"has_info": true
+    },
+    {
+	"name": "endpoints",
+	"filename": "ksep",
+	"has_list": true,
+	"has_output": true,
+	"has_shell": false,
+	"has_containers": false,
+	"has_all_ns": true,
+	"has_describe": true,
+	"has_logs": false,
+	"has_remove": true,
+	"has_edit": true,
+	"has_labels": true,
+	"has_info": true
     }
 ]

@@ -159,7 +159,13 @@ class ApiRes():
 
         with open(config, 'r') as f:
             json = loads(f.read())
-            self.pod_shell = self.args.cmd or json['shell'] if json['shell'] else '/bin/sh'
+            try:
+                self.pod_shell = self.args.cmd
+            except:
+                pass
+            if not self.pod_shell:
+                self.pod_shell = json['shell'] if json['shell'] else '/bin/sh'
+                
             self.kctl_bin = json['cmd'] if json['cmd'] else 'kubectl'
 
             self.werbs = Werbs(config_path=config,
@@ -173,7 +179,7 @@ class ApiRes():
     def run(self):
         if self.args.list:
             self.werbs.print_of(self.name)
-        elif self.args.shell:
+        elif self.has_shell and self.args.shell:
             if self.args.container_name:
                 self.werbs.shell_to_container(self.name, self.args.shell,
                                               self.args.container_name)
@@ -185,9 +191,9 @@ class ApiRes():
             self.werbs.delete_of("{}/{}".format(self.name, self.args.delete))
         elif self.args.edit:
             self.werbs.edit_of("{}/{}".format(self.name, self.args.edit))
-        elif self.args.containers_list:
+        elif self.has_containers and self.args.containers_list:
             print(self.werbs.list_of_containers(self.name, self.args.containers_list))
-        elif self.args.logs:
+        elif self.has_logs and self.args.logs:
             if self.args.container_name:
                 self.werbs.logs_to_container(self.name, self.args.logs,
                                              self.args.container_name)

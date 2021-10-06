@@ -16,9 +16,13 @@ from urllib.parse import urlparse
 
 from string import Template # native templating
 
-global am_i_bin
+global am_i_bin, global_api_config
 
 am_i_bin = False
+
+## include global api config
+global_api_config = []
+## end of include global api config
 
 def http_get(domain, path, verbose=False):
     is_got = False
@@ -102,8 +106,11 @@ def genfiles (apiconfig, verbose=False):
         pass
 
     api_config = []
-    with open(apiconfig, 'r') as f:
-        api_config = json.loads(f.read())
+    if am_i_bin:
+        api_config = global_api_config
+    else:
+        with open(apiconfig, 'r') as f:
+            api_config = json.loads(f.read())
 
     for i in api_config:
         result = ""
