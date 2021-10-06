@@ -23,7 +23,8 @@ def main ():
                  has_edit=$has_edit,
                  has_labels=$has_labels,
                  has_info=$has_info,
-                 has_top=$has_top)
+                 has_top=$has_top,
+                 has_scale=$has_scale)
     res.run()
 
 if __name__ == "__main__":

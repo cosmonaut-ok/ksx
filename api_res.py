@@ -7,7 +7,7 @@ from json import loads, dumps
 class ApiRes():
     def __init__(self, name, description, has_list, has_output, has_shell,
                  has_containers, has_all_ns, has_describe, has_logs, has_remove,
-                 has_edit, has_labels, has_info, has_top):
+                 has_edit, has_labels, has_info, has_top, has_scale):
 
         self.name = name
         self.has_list = has_list
@@ -22,6 +22,7 @@ class ApiRes():
         self.has_labels = has_labels
         self.has_info = has_info
         self.has_top = has_top
+        self.has_scale = has_scale
 
         parser = argparse.ArgumentParser(description=description)
 
@@ -111,6 +112,21 @@ class ApiRes():
                                  dest='top',
                                  help='top of {}. --top all for all {} in namespace, of --top all -A for all {}'.format(self.name, self.name, self.name)
                                  )
+
+        if self.has_scale:
+            cagroup.add_argument('--scale',
+                                 type=str,
+                                 dest='scale',
+                                 help='scale {}. Used with --rpl'.format(self.name)
+                                 )
+
+        if self.has_scale:
+            cagroup.add_argument('--rpl', '--replicas',
+                                 type=int,
+                                 dest='rpl',
+                                 help='set replicas number for scale of {}'.format(self.name)
+                                 )
+
 
         if self.has_logs:
             cagroup.add_argument('--logs',
@@ -230,5 +246,7 @@ class ApiRes():
             print(self.werbs.info_of("{}/{}".format(self.name, self.args.info)))
         elif self.has_top and self.args.top:
             self.werbs.top_of(self.name, self.args.top)
+        elif self.has_scale and self.args.scale:
+            self.werbs.scale_of("{}/{}".format(self.name, self.args.scale), self.args.rpl)
         else: # default action is "get namespaces"
             self.werbs.print_of(self.name)

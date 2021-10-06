@@ -148,7 +148,7 @@ class Werbs():
 
 
     def scale_of(self, name, number):
-        cmd = "{} scale --replicas={} {}".format(self.kctl, number, name)
+        cmd = "{} scale {} --replicas={}".format(self.kctl, name, number)
         cmd += self.ns
         cmd += self.out_suffix
         cmd += self.labels
