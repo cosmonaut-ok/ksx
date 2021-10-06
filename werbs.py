@@ -94,8 +94,6 @@ class Werbs():
     def describe_of(self, name):
         cmd = "{} describe {}".format(self.kctl, name)
         cmd += self.ns
-        cmd += self.out_suffix
-        cmd += self.labels
         subprocess.call(cmd, shell=True)
         self.__pit(cmd)
 

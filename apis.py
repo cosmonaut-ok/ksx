@@ -212,7 +212,7 @@ GLOBAL_API_CONFIG = [
 	"has_output": True,
 	"has_shell": False,
 	"has_containers": False,
-	"has_all_ns": True,
+	"has_all_ns": False,
 	"has_describe": True,
 	"has_logs": False,
 	"has_remove": True,

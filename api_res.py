@@ -182,11 +182,17 @@ class ApiRes():
             except:
                 pass
             
+            all_ns=None
+            try:
+                all_ns=self.args.all_namespaces
+            except:
+                pass
+
             self.werbs = Werbs(config_path=config,
                                out_format=self.args.output,
                                labels=labels,
                                kctl_bin=self.kctl_bin,
-                               all_ns=self.args.all_namespaces,
+                               all_ns=all_ns,
                                trace=self.args.trace)
 
 
