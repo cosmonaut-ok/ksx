@@ -13,8 +13,7 @@ from werbs import Werbs
 import http.client, json
 from urllib.parse import urlparse
 
-# from werbs import Werbs
-# from json import loads
+from string import Template # native templating
 
 def http_get(domain, path, verbose=True):
     is_got = False
@@ -89,14 +88,37 @@ def genconfig (kubeconfig, kubepath, shell='/bin/bash', verbose=True):
         outfile.write(json_object)
 
 
+def genfiles (apiconfig):
+    api_config = []
+    with open(apiconfig, 'r') as f:
+        api_config = json.loads(f.read())
+
+    for i in api_config:
+        result = ""
+        with open('kstemplate', 'r') as f:
+            src = Template(f.read())
+            result = src.substitute(i)
+
+        # write file
+        with open(i["filename"], 'w') as f:
+            f.write(result)
+        ## chmod +x
+        st = os.stat(i["filename"])
+        os.chmod(i["filename"], st.st_mode | stat.S_IEXEC)
+
+        print("file {} generated".format(i["filename"]))
+
 def init(kubeversion=None, kubeshell='/bin/bash', no_genconfig=False, verbose=True):
     kctl_path=join(dirname(realpath(__file__)), 'kubectl')
     config_path=join(dirname(realpath(__file__)), 'ksx.json')
+    api_config_path=join(dirname(realpath(__file__)), 'apis.json')
 
     install_kubectl(kctl_path, kubeversion, verbose)
 
     if not no_genconfig:
         genconfig(config_path, kctl_path, kubeshell, verbose)
+
+    genfiles(api_config_path)
 
 
 def main ():

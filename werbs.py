@@ -2,7 +2,7 @@ from json import loads, dumps
 import subprocess
 from simple_term_menu import TerminalMenu
 
-class Werbs():    
+class Werbs():
     def __init__(self, out_format=None, pod_shell="/bin/bash", kctl_bin="kubectl", all_ns=False, trace=False, labels=None, config_path=None):
 
         if config_path:
@@ -55,6 +55,16 @@ class Werbs():
         lst = subprocess.getoutput(cmd)
         self.__pit(cmd)
         return lst
+
+
+    def info_of(self, name):
+        cmd = "{} get {}".format(self.kctl, name)
+        cmd += self.all_ns
+        cmd += self.out_suffix if self.out_suffix else " -o yaml"
+        cmd += self.labels
+        info = subprocess.getoutput(cmd)
+        self.__pit(cmd)
+        return info
 
 
     def print_of(self, name):

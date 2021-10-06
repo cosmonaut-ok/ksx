@@ -1,0 +1,32 @@
+[
+    {
+	"name": "pods",
+	"filename": "ksp_test",
+	"has_list": true,
+	"has_output": true,
+	"has_shell": true,
+	"has_containers": true,
+	"has_all_ns": true,
+	"has_describe": true,
+	"has_logs": true,
+	"has_remove": true,
+	"has_edit": true,
+	"has_labels": true,
+	"has_info": true
+    },
+    {
+	"name": "deployments",
+	"filename": "ksd_test",
+	"has_list": true,
+	"has_output": true,
+	"has_shell": true,
+	"has_containers": true,
+	"has_all_ns": true,
+	"has_describe": true,
+	"has_logs": true,
+	"has_remove": true,
+	"has_edit": true,
+	"has_labels": true,
+	"has_info": true
+    }
+]

@@ -1,8 +1,9 @@
-./kubectl
-./ksx.json
+kubectl
+ksx.json
 *~
 __pycache__
 .venvdir
 target/
 *.tar.gz
 kubectl
+*_test
