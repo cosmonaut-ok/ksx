@@ -3,18 +3,24 @@ import subprocess
 from simple_term_menu import TerminalMenu
 
 class Werbs():
-    def __init__(self, out_format=None, pod_shell="/bin/bash", kctl_bin="kubectl", all_ns=False, trace=False, labels=None, config_path=None):
+    def __init__(self, out_format=None, pod_shell="/bin/bash", kctl_bin="kubectl", namespace=None, all_ns=False, trace=False, labels=None, config_path=None):
 
         if config_path:
             json = loads(open(config_path).read())
 
+            if namespace:
+                self.ns = ' --namespace {} '.format(namespace)
+            else:
+                self.ns = ''
+
+            if not namespace and all_ns:
+                self.ns = " --all-namespaces "
+            else:
+                self.ns = ""
+
             # self.out_suffix = out_suffix
             self.shell = json['shell'] if json['shell'] else '/bin/sh'
             self.kctl = json['cmd'] if json['cmd'] else 'kubectl'
-            if all_ns:
-                self.all_ns = " --all-namespaces "
-            else:
-                self.all_ns = ""
 
             self.trace = trace
             self.labels = labels
@@ -49,7 +55,7 @@ class Werbs():
 
     def list_of(self, name):
         cmd = "{} get {} -o name".format(self.kctl, name)
-        cmd += self.all_ns
+        cmd += self.ns
         cmd += self.out_suffix
         cmd += self.labels
         lst = subprocess.getoutput(cmd)
@@ -59,7 +65,7 @@ class Werbs():
 
     def info_of(self, name):
         cmd = "{} get {}".format(self.kctl, name)
-        cmd += self.all_ns
+        cmd += self.ns
         cmd += self.out_suffix if self.out_suffix else " -o yaml"
         cmd += self.labels
         info = subprocess.getoutput(cmd)
@@ -69,7 +75,7 @@ class Werbs():
 
     def print_of(self, name):
         cmd = "{} get {}".format(self.kctl, name)
-        cmd += self.all_ns
+        cmd += self.ns
         cmd += self.out_suffix
         cmd += self.labels
         subprocess.call(cmd, shell=True)
@@ -78,7 +84,7 @@ class Werbs():
 
     def explain_of(self, name):
         cmd = "{} explain {}".format(self.kctl, name)
-        cmd += self.all_ns
+        cmd += self.ns
         cmd += self.out_suffix
         cmd += self.labels
         subprocess.call(cmd, shell=True)
@@ -87,7 +93,7 @@ class Werbs():
 
     def describe_of(self, name):
         cmd = "{} describe {}".format(self.kctl, name)
-        cmd += self.all_ns
+        cmd += self.ns
         cmd += self.out_suffix
         cmd += self.labels
         subprocess.call(cmd, shell=True)
@@ -96,7 +102,7 @@ class Werbs():
 
     def delete_of(self, name):
         cmd = "{} delete {}".format(self.kctl, name)
-        cmd += self.all_ns
+        cmd += self.ns
         cmd += self.out_suffix
         cmd += self.labels
         subprocess.call(cmd, shell=True)
@@ -105,7 +111,7 @@ class Werbs():
 
     def edit_of(self, name):
         cmd = "{} edit {}".format(self.kctl, name)
-        cmd += self.all_ns
+        cmd += self.ns
         cmd += self.out_suffix
         cmd += self.labels
         subprocess.call(cmd, shell=True)
@@ -114,7 +120,7 @@ class Werbs():
 
     def logs_of(self, name):
         cmd = "{} logs {}".format(self.kctl, name)
-        cmd += self.all_ns
+        cmd += self.ns
         cmd += self.out_suffix
         cmd += self.labels
         subprocess.call(cmd, shell=True)
@@ -123,7 +129,7 @@ class Werbs():
 
     def delete_of(self, name):
         cmd = "{} delete {}".format(self.kctl, name)
-        cmd += self.all_ns
+        cmd += self.ns
         cmd += self.out_suffix
         cmd += self.labels
         subprocess.call(cmd, shell=True)
@@ -132,7 +138,7 @@ class Werbs():
 
     def scale_of(self, name, number):
         cmd = "{} scale --replicas={} {}".format(self.kctl, number, name)
-        cmd += self.all_ns
+        cmd += self.ns
         cmd += self.out_suffix
         cmd += self.labels
         subprocess.call(cmd, shell=True)

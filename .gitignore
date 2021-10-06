@@ -7,3 +7,4 @@ target/
 *.tar.gz
 kubectl
 *_test
+bin

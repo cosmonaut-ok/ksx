@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from os.path import join, realpath, dirname
+from os import makedirs
 import os, sys
 import stat
 import subprocess
@@ -15,12 +16,12 @@ from urllib.parse import urlparse
 
 from string import Template # native templating
 
-def http_get(domain, path, verbose=True):
+def http_get(domain, path, verbose=False):
     is_got = False
     conn = http.client.HTTPSConnection(domain)
     conn.request("GET", path)
     r1 = conn.getresponse()
-    
+
     if verbose:
         print("Downloading {}{}".format(domain, path))
 
@@ -44,7 +45,7 @@ def http_get(domain, path, verbose=True):
     return r1.read()
 
 
-def install_kubectl(kubepath, kubeversion=None, verbose=True):
+def install_kubectl(kubepath, kubeversion=None, verbose=False):
     if not kubeversion:
         kubeversion = http_get("dl.k8s.io", "/release/stable.txt", verbose).decode('utf-8')
 
@@ -73,7 +74,7 @@ def install_kubectl(kubepath, kubeversion=None, verbose=True):
         os.chmod(kubepath, st.st_mode | stat.S_IEXEC)
 
 
-def genconfig (kubeconfig, kubepath, shell='/bin/bash', verbose=True):
+def genconfig (kubeconfig, kubepath, shell='/bin/bash', verbose=False):
     ## setup config file
     config = {
         "cmd": kubepath,
@@ -88,7 +89,11 @@ def genconfig (kubeconfig, kubepath, shell='/bin/bash', verbose=True):
         outfile.write(json_object)
 
 
-def genfiles (apiconfig):
+def genfiles (apiconfig, verbose=False):
+
+    ## create directory
+    os.makedirs("bin")
+
     api_config = []
     with open(apiconfig, 'r') as f:
         api_config = json.loads(f.read())
@@ -100,15 +105,17 @@ def genfiles (apiconfig):
             result = src.substitute(i)
 
         # write file
-        with open(i["filename"], 'w') as f:
+        fname = join("bin", i["filename"])
+        with open(fname, 'w') as f:
             f.write(result)
         ## chmod +x
-        st = os.stat(i["filename"])
-        os.chmod(i["filename"], st.st_mode | stat.S_IEXEC)
+        st = os.stat(fname)
+        os.chmod(fname, st.st_mode | stat.S_IEXEC)
+        if verbose:
+            print("file {} generated".format(i["filename"]))
 
-        print("file {} generated".format(i["filename"]))
 
-def init(kubeversion=None, kubeshell='/bin/bash', no_genconfig=False, verbose=True):
+def init(kubeversion=None, kubeshell='/bin/bash', no_genconfig=False, verbose=False):
     kctl_path=join(dirname(realpath(__file__)), 'kubectl')
     config_path=join(dirname(realpath(__file__)), 'ksx.json')
     api_config_path=join(dirname(realpath(__file__)), 'apis.json')
@@ -118,7 +125,7 @@ def init(kubeversion=None, kubeshell='/bin/bash', no_genconfig=False, verbose=Tr
     if not no_genconfig:
         genconfig(config_path, kctl_path, kubeshell, verbose)
 
-    genfiles(api_config_path)
+    genfiles(api_config_path, verbose)
 
 
 def main ():
@@ -356,7 +363,7 @@ def main ():
 #     out = subprocess.getoutput(cmd)
 #     return out
 
-    
+
 # if args.list:
 #     werbs.print_of("pods")
 # elif args.shell:

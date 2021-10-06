@@ -4,6 +4,9 @@
 ## do not edit it, if you do not know
 ## what you do
 
+import os,sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+
 from api_res import ApiRes
 
 def main ():

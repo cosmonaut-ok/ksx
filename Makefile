@@ -39,4 +39,4 @@ dist:
 # 	tar -xvf /tmp/.cpython.tar.zst
 
 clean:
-	rm -rf $(TARGETDIR) __pycache__
+	rm -rf $(TARGETDIR) __pycache__ bin

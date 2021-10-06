@@ -24,7 +24,10 @@ class ApiRes():
 
         parser = argparse.ArgumentParser()
 
-        parser.add_argument("describe_res_pos", help="Get pod", type=str, nargs='*')
+        parser.add_argument("describe_res_pos",
+                            type=str,
+                            help="describe {}".format(self.name),
+                            nargs='*')
 
         #### parser add arguments
         # command arguments group
@@ -33,75 +36,94 @@ class ApiRes():
         # service arguments group
         sagroup=parser.add_argument_group('Service arguments')
 
-        cagroup.add_argument('-l', '--list',
-                    action='store_true',
-                    dest='list',
-                    help='Suppress Output'
-                    )
+        if self.has_list:
+            cagroup.add_argument('-l', '--list',
+                                 action='store_true',
+                                 dest='list',
+                                 help='List of {}'.format(self.name)
+                                 )
+        if self.has_output:
+            sagroup.add_argument('-o', '--output',
+                                 type=str,
+                                 dest='output',
+                                 help='output format json|yaml|wide|custom-columns=...|custom-columns-file=...|go-template=...|go-template-file=...|jsonpath=...|jsonpath-file=...]')
 
-        sagroup.add_argument('-o', '--output',
-                             type=str,
-                             dest='output',
-                             help='output format json|yaml|wide|custom-columns=...|custom-columns-file=...|go-template=...|go-template-file=...|jsonpath=...|jsonpath-file=...]'
-)
+        if self.has_shell:
+            cagroup.add_argument('-s', '--shell',
+                                 type=str,
+                                 dest='shell',
+                                 help='Run shell on a {} container'.format(self.name)
+                                 )
 
-        cagroup.add_argument('-s', '--shell',
-                             type=str,
-                             dest='shell',
-                             help='Run shell on a selected pod'
-                             )
+        if self.has_shell:
+            sagroup.add_argument('-c', '--cmd',
+                                 type=str,
+                                 dest='cmd',
+                                 help='Custom command for `--shell` argument'
+                                 )
 
-        sagroup.add_argument('-c', '--cmd',
-                             type=str,
-                             dest='cmd',
-                             help='Custom command for `--shell` argument'
-                             )
-        cagroup.add_argument('--cl', '--containers-list',
-                             type=str,
-                             dest='containers_list',
-                             help='Get list of pod`s running containers'
-                             )
+        if self.has_containers:
+            cagroup.add_argument('--cl', '--containers-list',
+                                 type=str,
+                                 dest='containers_list',
+                                 help='Get list of {} running containers'.format(self.name)
+                                 )
 
-        sagroup.add_argument('--container',
-                             type=str,
-                             dest='container_name',
-                             help='Operate with single container inside of multicontainer pod'
-                             )
+        if self.has_containers:
+            sagroup.add_argument('--container',
+                                 type=str,
+                                 dest='container_name',
+                                 help='Operate with single container inside of multicontainer {}'.format(self.name)
+                                 )
 
-        sagroup.add_argument('-A', '--all-namespaces',
-                             action='store_true',
-                             dest='all_namespaces',
-                             help='Operate with resources from all namespaces'
-                             )
-        cagroup.add_argument('-d', '--describe',
+        if self.has_all_ns:
+            sagroup.add_argument('-A', '--all-namespaces',
+                                 action='store_true',
+                                 dest='all_namespaces',
+                                 help='Operate with resources from all namespaces'
+                                 )
+
+        if self.has_all_ns:
+            sagroup.add_argument('-n', '--namespace',
+                                 type=str,
+                                 dest='ns',
+                                 help='Set Custom ns to operate with {}'.format(self.name)
+                                 )
+
+        if self.has_describe:
+            cagroup.add_argument('-d', '--describe',
                              type=str,
                              dest='describe',
-                             help='describe pod'
+                             help='describe {}'.format(self.name)
                              )
 
-        cagroup.add_argument('-i', '--info',
-                             type=str,
-                             dest='info',
-                             help='describe pod'
-                             )
+        if self.has_info:
+            cagroup.add_argument('-i', '--info',
+                                 type=str,
+                                 dest='info',
+                                 help='describe {}'.format(self.name)
+                                 )
 
-        cagroup.add_argument('--logs',
-                             type=str,
-                             dest='logs',
-                             help='logs from pod'
-                             )
+        if self.has_logs:
+            cagroup.add_argument('--logs',
+                                 type=str,
+                                 dest='logs',
+                                 help='logs from {}'.format(self.name)
+                                 )
 
-        cagroup.add_argument('-r', '--remove',
-                             type=str,
-                             dest='remove',
-                             help='delete pod'
-                             )
+        if self.has_remove:
+            cagroup.add_argument('-r', '--remove',
+                                 type=str,
+                                 dest='remove',
+                                 help='remove {}'.format(self.name)
+                                 )
 
-        cagroup.add_argument('-e', '--edit',
-                             type=str,
-                             dest='edit',
-                             help='edit pod'
-                             )
+        if self.has_edit:
+            cagroup.add_argument('-e', '--edit',
+                                 type=str,
+                                 dest='edit',
+                                 help='edit {}'.format(self.name)
+                                 )
 
         sagroup.add_argument('-t', '--trace',
                              action='store_true',
@@ -109,21 +131,23 @@ class ApiRes():
                              help='trace real kubectl commands'
                              )
 
-        sagroup.add_argument('--labels',
-                             type=str,
-                             dest='labels',
-                             help='Use label to filter out resources'
-                             )
+        if self.has_labels:
+            sagroup.add_argument('--labels',
+                                 type=str,
+                                 dest='labels',
+                                 help='Use label to filter out resources'
+                                 )
 
-        cagroup.add_argument('--wat',
+        cagroup.add_argument('--wat', '--explain',
                              action='store_true',
                              dest='wat',
-                             help='Manual about kubernetes pods'
+                             help='Explain {}'.format(self.name)
                              )
+
         sagroup.add_argument('-v', '--version',
                              action='store_true',
                              dest='version',
-                             help='show version of application'
+                             help='print version of ksx and exit'
                              )
 
         self.args = parser.parse_args()
@@ -175,7 +199,7 @@ class ApiRes():
             self.werbs.print_version()
         elif self.args.describe_res_pos:
             self.werbs.describe_of("{}/{}".format(self.name,
-                                                  self.args.describe_pod_pos[0]))
+                                                  self.args.describe_res_pos[0]))
         elif self.args.info:
             print(self.werbs.info_of("{}/{}".format(self.name, self.args.info)))
         else: # default action is "get namespaces"
