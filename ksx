@@ -123,27 +123,31 @@ def genfiles (apiconfig, verbose=False):
         
     ## copy ksc
     f = open('ksc',"r")
-    copy = open(join("bin", "ksc"), "wt")
+    copyname = join("bin", "ksc")
+    copy = open(copyname, "wt")
     line = f.read()
     copy.write(str(line))
     f.close()
     copy.close()
     ## chmod +x
-    st = os.stat(copy)
-    os.chmod(copy, st.st_mode | stat.S_IEXEC)
-    print("file ksc copied")
+    st = os.stat(copyname)
+    os.chmod(copyname, st.st_mode | stat.S_IEXEC)
+    if verbose:
+        print("file {} copied".format(copyname))
 
     ## copy ksn
     f = open('ksn',"r")
-    copy = open(join("bin", "ksn"), "wt")
+    copyname = join("bin", "ksn")
+    copy = open(copyname, "wt")
     line = f.read()
     copy.write(str(line))
     f.close()
     copy.close()
     ## chmod +x
-    st = os.stat(copy)
-    os.chmod(copy, st.st_mode | stat.S_IEXEC)
-    print("file ksn copied")
+    st = os.stat(copyname)
+    os.chmod(copyname, st.st_mode | stat.S_IEXEC)
+    if verbose:
+        print("file {} copied".format(copyname))
 
 
 def init(kubeversion=None, kubeshell='/bin/bash', no_genconfig=False, genexecs=False, verbose=False):
