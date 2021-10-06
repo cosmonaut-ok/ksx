@@ -34,7 +34,7 @@ all: .venv .deps
 	cp ksx.json $(TARGETDIR)/ksx/etc
 
 dist:
-	cd $(TARGETDIR) && tar -cvzpf ksx.tar.gz $(TARGETDIR)/ksx
+	cd $(TARGETDIR) && tar -cvzpf ksx.tar.gz ksx
 	mv $(TARGETDIR)/ksx.tar.gz .
 
 # python:

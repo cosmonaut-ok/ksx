@@ -193,7 +193,7 @@ def add_to_path(verbose=False):
     if not exists(profile_path):
         raise FileNotFoundError("Can not find shell profile file to add ksx to PATH")
     
-    self_dirname = dirname(realpath(__file__))
+    self_dirname = join(dirname(realpath(__file__)), "bin")
     if verbose:
         print("Adding {} to PATH".format(self_dirname))
     with open(profile_path, 'a') as f:
@@ -260,10 +260,16 @@ def main ():
 
     args = parser.parse_args()
 
+    genexecs = False
+    try:
+        genexecs = args.genexecs
+    except:
+        pass
+
     if args.info:
         show_extended_help()
-    elif args.init or (not am_i_bin and args.genexecs):
-        init(args.kubeversion, args.kubeshell, args.nogenconfig, args.genexecs, args.verbose)
+    elif args.init or genexecs:
+        init(args.kubeversion, args.kubeshell, args.nogenconfig, genexecs, args.verbose)
     elif args.version:
         werbs = Werbs()
         werbs.print_version()
