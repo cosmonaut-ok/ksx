@@ -128,6 +128,10 @@ def genfiles (apiconfig, verbose=False):
     copy.write(str(line))
     f.close()
     copy.close()
+    ## chmod +x
+    st = os.stat(copy)
+    os.chmod(copy, st.st_mode | stat.S_IEXEC)
+    print("file ksc copied")
 
     ## copy ksn
     f = open('ksn',"r")
@@ -136,6 +140,10 @@ def genfiles (apiconfig, verbose=False):
     copy.write(str(line))
     f.close()
     copy.close()
+    ## chmod +x
+    st = os.stat(copy)
+    os.chmod(copy, st.st_mode | stat.S_IEXEC)
+    print("file ksn copied")
 
 
 def init(kubeversion=None, kubeshell='/bin/bash', no_genconfig=False, genexecs=False, verbose=False):
