@@ -169,8 +169,12 @@ def genfiles (verbose=False):
 
 
 def init(kubeversion=None, kubeshell='/bin/bash', no_genconfig=False, genexecs=False, verbose=False):
-    kctl_path=join(dirname(dirname(realpath(__file__))), 'kubectl')
-    config_path=join(dirname(dirname(realpath(__file__))), 'ksx.json')
+    if am_i_bin:
+        kctl_path=join(dirname(realpath(__file__)), 'kubectl')
+        config_path=join(dirname(realpath(__file__)), 'ksx.json')
+    else:
+        kctl_path=join(dirname(dirname(realpath(__file__))), 'kubectl')
+        config_path=join(dirname(dirname(realpath(__file__))), 'ksx.json')
 
     install_kubectl(kctl_path, kubeversion, verbose)
 
@@ -193,7 +197,9 @@ def add_to_path(verbose=False):
     if not exists(profile_path):
         raise FileNotFoundError("Can not find shell profile file to add ksx to PATH")
     
-    self_dirname = join(dirname(realpath(__file__)), "bin")
+    self_dirname = dirname(realpath(__file__))
+    if not (re.match(r'bin$', self_dirname) or re.match(r'bin/$', self_dirname)): # real ksx path is one level upper, then "bin"
+        self_dirname = join(dirname(realpath(__file__)), "bin")
     if verbose:
         print("Adding {} to PATH".format(self_dirname))
     with open(profile_path, 'a') as f:
