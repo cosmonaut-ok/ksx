@@ -7,7 +7,7 @@ from json import loads, dumps
 class ApiRes():
     def __init__(self, name, description, has_list, has_output, has_shell,
                  has_containers, has_all_ns, has_describe, has_logs, has_remove,
-                 has_edit, has_labels, has_info):
+                 has_edit, has_labels, has_info, has_top):
 
         self.name = name
         self.has_list = has_list
@@ -21,6 +21,7 @@ class ApiRes():
         self.has_edit = has_edit
         self.has_labels = has_labels
         self.has_info = has_info
+        self.has_top = has_top
 
         parser = argparse.ArgumentParser(description=description)
 
@@ -104,6 +105,13 @@ class ApiRes():
                                  help='describe {}'.format(self.name)
                                  )
 
+        if self.has_top:
+            cagroup.add_argument('--top',
+                                 type=str,
+                                 dest='top',
+                                 help='top of {}. --top all for all {} in namespace, of --top all -A for all {}'.format(self.name, self.name, self.name)
+                                 )
+
         if self.has_logs:
             cagroup.add_argument('--logs',
                                  type=str,
@@ -168,9 +176,15 @@ class ApiRes():
                 
             self.kctl_bin = json['cmd'] if json['cmd'] else 'kubectl'
 
+            labels=None
+            try:
+                labels=self.args.labels
+            except:
+                pass
+            
             self.werbs = Werbs(config_path=config,
                                out_format=self.args.output,
-                               labels=self.args.labels,
+                               labels=labels,
                                kctl_bin=self.kctl_bin,
                                all_ns=self.args.all_namespaces,
                                trace=self.args.trace)
@@ -185,11 +199,11 @@ class ApiRes():
                                               self.args.container_name)
             else:
              self.werbs.shell_to_object(self.name, self.args.shell)
-        elif self.args.describe:
+        elif self.has_describe and self.args.describe:
             self.werbs.describe_of("{}/{}".format(self.name, self.args.describe))
-        elif self.args.remove:
+        elif self.has_remove and self.args.remove:
             self.werbs.delete_of("{}/{}".format(self.name, self.args.delete))
-        elif self.args.edit:
+        elif self.has_edit and self.args.edit:
             self.werbs.edit_of("{}/{}".format(self.name, self.args.edit))
         elif self.has_containers and self.args.containers_list:
             print(self.werbs.list_of_containers(self.name, self.args.containers_list))
@@ -206,7 +220,9 @@ class ApiRes():
         elif self.args.describe_res_pos:
             self.werbs.describe_of("{}/{}".format(self.name,
                                                   self.args.describe_res_pos[0]))
-        elif self.args.info:
+        elif self.has_info and self.args.info:
             print(self.werbs.info_of("{}/{}".format(self.name, self.args.info)))
+        elif self.has_top and self.args.top:
+            self.werbs.top_of(self.name, self.args.top)
         else: # default action is "get namespaces"
             self.werbs.print_of(self.name)

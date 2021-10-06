@@ -22,7 +22,8 @@ def main ():
                  has_remove=$has_remove,
                  has_edit=$has_edit,
                  has_labels=$has_labels,
-                 has_info=$has_info)
+                 has_info=$has_info,
+                 has_top=$has_top)
     res.run()
 
 if __name__ == "__main__":

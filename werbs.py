@@ -136,6 +136,19 @@ class Werbs():
         self.__pit(cmd)
 
 
+    def top_of(self, resource, name):
+        cmd = ''
+        if name != "all":
+            cmd = "{} top {} {}".format(self.kctl, resource, name)
+        else:
+            cmd = "{} top {}".format(self.kctl, resource)
+        cmd += self.ns
+        cmd += self.out_suffix
+        cmd += self.labels
+        subprocess.call(cmd, shell=True)
+        self.__pit(cmd)
+
+
     def scale_of(self, name, number):
         cmd = "{} scale --replicas={} {}".format(self.kctl, number, name)
         cmd += self.ns
