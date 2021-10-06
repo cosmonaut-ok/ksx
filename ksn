@@ -23,6 +23,12 @@ cagroup.add_argument('-l', '--list',
                     help='Suppress Output'
                     )
 
+cagroup.add_argument('-c', '--current',
+                    action='store_true',
+                    dest='current',
+                    help='Print current namespace'
+                    )
+
 sagroup.add_argument('-o', '--output',
                     type=str,
                     dest='output',
@@ -125,5 +131,7 @@ elif args.version:
     werbs.print_version()
 elif args.use_namespace_pos:
     set_current_namespace(args.use_namespace_pos[0])
-else: # default action is "get namespaces"
+elif args.current:
     print(werbs.current_namespace())
+else: # default action is "get namespaces"
+    werbs.print_of("namespaces")

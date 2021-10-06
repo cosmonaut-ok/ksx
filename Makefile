@@ -20,7 +20,7 @@ PYTHONPATH := $(PYTHONPATH):$(shell realpath -P .)
 all: .venv .deps
 	mkdir -p $(TARGETDIR)/ksx/bin $(TARGETDIR)/ksx/etc
 	sed 's/^am_i_bin.*/am_i_bin\ =\ True/g' ksx > bin/ksx # change to True before compilation
-	for i in ksc kscj kscm ksd kshelp ksi ksj ksn ksp kspv kspvc kss ksts ksx; do \
+	for i in `ls bin`; do \
 		$(PYBIN) -m nuitka bin/$$i \
 			--standalone \
 			--follow-imports \
@@ -34,7 +34,8 @@ all: .venv .deps
 	cp ksx.json $(TARGETDIR)/ksx/etc
 
 dist:
-	tar -cvzpf ksx.tar.gz $(TARGETDIR)/ksx
+	cd $(TARGETDIR) && tar -cvzpf ksx.tar.gz $(TARGETDIR)/ksx
+	mv $(TARGETDIR)/ksx.tar.gz .
 
 # python:
 # 	wget https://github.com/indygreg/python-build-standalone/releases/download/20210724/cpython-3.8.11-x86_64-unknown-linux-musl-noopt-20210724T1424.tar.zst -O /tmp/.cpython.tar.zst
@@ -42,3 +43,6 @@ dist:
 
 clean:
 	rm -rf $(TARGETDIR) __pycache__
+
+link:
+	if test -d bin; then cd bin && for i in `ls`; do sudo ln -sf $PWD/$i /usr/local/bin/$i; done; fi

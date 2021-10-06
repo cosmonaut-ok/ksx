@@ -74,6 +74,8 @@ def install_kubectl(kubepath, kubeversion=None, verbose=False):
     if kubeversion_local != kubeversion:
         kctl_bin = http_get("dl.k8s.io", "/release/{}/bin/linux/amd64/kubectl".format(kubeversion))
 
+        if verbose:
+            print("Saving kubectl to {}".format(kubepath))
         with open(kubepath, "wb") as f:
             f.write(kctl_bin)
 
@@ -97,7 +99,7 @@ def genconfig (kubeconfig, kubepath, shell='/bin/bash', verbose=False):
         outfile.write(json_object)
 
 
-def genfiles (apiconfig, verbose=False):
+def genfiles (verbose=False):
 
     ## create directory
     try:
@@ -106,12 +108,6 @@ def genfiles (apiconfig, verbose=False):
         pass
 
     api_config = apis.GLOBAL_API_CONFIG
-    # api_config = []
-    # if am_i_bin:
-    #     api_config = global_api_config
-    # else:
-    #     with open(apiconfig, 'r') as f:
-    #         api_config = json.loads(f.read())
 
     for i in api_config:
         result = ""
@@ -157,11 +153,24 @@ def genfiles (apiconfig, verbose=False):
     if verbose:
         print("file {} copied".format(copyname))
 
+    ## copy ksx
+    f = open('ksx',"r")
+    copyname = join("bin", "ksx")
+    copy = open(copyname, "wt")
+    line = f.read()
+    copy.write(str(line))
+    f.close()
+    copy.close()
+    ## chmod +x
+    st = os.stat(copyname)
+    os.chmod(copyname, st.st_mode | stat.S_IEXEC)
+    if verbose:
+        print("file {} copied".format(copyname))
+
 
 def init(kubeversion=None, kubeshell='/bin/bash', no_genconfig=False, genexecs=False, verbose=False):
-    kctl_path=join(dirname(realpath(__file__)), 'kubectl')
-    config_path=join(dirname(realpath(__file__)), 'ksx.json')
-    api_config_path=join(dirname(realpath(__file__)), 'apis.json')
+    kctl_path=join(dirname(dirname(realpath(__file__))), 'kubectl')
+    config_path=join(dirname(dirname(realpath(__file__))), 'ksx.json')
 
     install_kubectl(kctl_path, kubeversion, verbose)
 
@@ -169,7 +178,26 @@ def init(kubeversion=None, kubeshell='/bin/bash', no_genconfig=False, genexecs=F
         genconfig(config_path, kctl_path, kubeshell, verbose)
 
     if not am_i_bin and genexecs:
-        genfiles(api_config_path, verbose)
+        genfiles(verbose)
+
+
+def add_to_path(verbose=False):
+    profile_path = join(os.environ['HOME'], ".profile")
+    ## try bashrc
+    if not exists(profile_path):
+        profile_path = join(os.environ['HOME'], ".bashrc")
+    ## try zshrc
+    if not exists(profile_path):
+        profile_path = join(os.environ['HOME'], ".zshrc")
+    ## give up
+    if not exists(profile_path):
+        raise FileNotFoundError("Can not find shell profile file to add ksx to PATH")
+    
+    self_dirname = dirname(realpath(__file__))
+    if verbose:
+        print("Adding {} to PATH".format(self_dirname))
+    with open(profile_path, 'a') as f:
+        f.write("export PATH={}:$PATH\n".format(self_dirname))
 
 
 def main ():
@@ -184,6 +212,12 @@ def main ():
     parser.add_argument('--init',
                         action='store_true',
                         dest='init',
+                        help='Preform initial configuration (e.g. install embedded kubectl, generate config etc)'
+                        )
+
+    parser.add_argument('--add-to-path',
+                        action='store_true',
+                        dest='add_to_path',
                         help='Preform initial configuration (e.g. install embedded kubectl, generate config etc)'
                         )
 
@@ -228,11 +262,13 @@ def main ():
 
     if args.info:
         show_extended_help()
-    elif args.init or args.genexecs:
+    elif args.init or (not am_i_bin and args.genexecs):
         init(args.kubeversion, args.kubeshell, args.nogenconfig, args.genexecs, args.verbose)
     elif args.version:
         werbs = Werbs()
         werbs.print_version()
+    elif args.add_to_path:
+        add_to_path(args.verbose)
     else:
         parser.print_help(sys.stderr)
 
@@ -248,18 +284,6 @@ kubernetes resouce, like `pod`, `ingress` etc. The list of ksX tools:
 
     for i in apis.GLOBAL_API_CONFIG:
         print("{}\t- {}".format(i["filename"], i["description"]))
-# ksc\t- operate with contexts
-# kscj\t- operate with cronjobs
-# kscm\t- operate with configmaps
-# ksd\t- operate with deployments
-# ksi\t- operate with ingress
-# ksj\t- operate with jobs
-# ksn\t- operate with namespaces
-# ksp\t- operate with pods
-# kspv\t- operate with persistant volumes
-# kspvc\t- operate with persistant volume claims
-# kss\t- operate with services
-# ksts\t- operate with stateful sets
 
 # OPTIONS (common for all tools):
 #   one optional positional argument
