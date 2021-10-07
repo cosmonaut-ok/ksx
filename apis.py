@@ -135,7 +135,7 @@ GLOBAL_API_CONFIG = [
 	"has_output": True,
 	"has_shell": True,
 	"has_containers": True,
-	"has_all_ns": True,
+	"has_all_ns": False,
 	"has_describe": True,
 	"has_logs": True,
 	"has_remove": True,
