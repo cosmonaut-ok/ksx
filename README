@@ -1,0 +1,110 @@
+# ksx
+
+kubectl is standatd tool to manage kubernetes clusters and resources. But, it does not rules, that makes CLI tools usefull for day-to-day usage. Traditional sh/bash commands, like `cp`, `mv`, `rm` are short and its keys are short too. So, user should not type smth like painful `copy from=/path/to/orig/directory to=/path/to/copy/directory --recursive`. So, main idea of `ksx` is to give short and laconic interface, useful not only in some scripts, but in regular terminal also.
+
+`ksx` is not single tool. It is set of cli commands, following `do one thing well` way with short, almost non-positional keys with its long alternatives.
+
+
+## Setup
+
+ksx is a python-based tools. It can be distributed as regular python scripts or precompiled binaries with nuitka. Setup depends on how it was get.
+
+### Regular
+
+1. Install python in your favorite way
+
+2. Clone this repo and setup ksx
+```bash
+/path/to/ksx $ ./ksx --genexecs
+/path/to/ksx $ ./ksx --add-to-path
+/path/to/ksx $ . ~/.profile
+/path/to/ksx $ ./ksx --add-to-path
+```
+
+3. Prepare configuration
+```bash
+$ ksx --init
+# or to use custom kubectl and/or default shell for login to containers
+$ ksx --init --kubectl-version 1.20.0 --kubectl-shell /bin/bash
+```
+
+4. PROFIT
+```bash
+$ ksx --info
+```
+
+### Binary
+
+
+## Usage
+
+flags, bound to kubectl commads:
+```
+--list              list [default w/o keys] (also `-l` for `ksn`)
+-v --view           describe [default, if resource name is positional]
+-i --info           get single resource
+-c, --cmd, --exec   exec [execute command/shell. Default is configured in `ksx.json` or `/bin/bash`. Use --cc for custom command]
+-e --edit           edit
+-s --scale          scale
+-d --delete         remove
+--top               top
+-l, --logs          logs
+--wat --explain     explain
+```
+
+service flags:
+```
+-o --output         output (kubectl output format)
+--cnt, --container  custom container for exec/login and logs (optional. Interactive menu will be shown in case of multiple containers)
+-A                  all namespaces
+-n, --namespace     custom namespace
+-t, --trace         show original kubectl command, namespace and context
+--cns --containers  containers list of given resource
+--cc                run custom command (for -c)
+--rpl, --replicas   number of replicas (for --scale)
+--labels            labels (kubectl labels)
+--version           print ksx version
+```
+
+### ksn
+
+ksn - tool for switching kubernetes namespaces (like kubens) has a little bit different keys
+```
+-l, --list          **list of namespaces (default action in case of w/o any keys)**
+-c, --current       **print current namespace**
+-u, --use           use namespace (default in case of namespace name given as positional argument)
+-v --view           describe [default, if resource name is positional]
+-e --edit           edit
+--wat --explain     explain
+-o --output         output (kubectl output format)
+-t, --trace         show original kubectl command, namespace and context
+--labels            labels (kubectl labels)
+--version           print ksx version
+```
+
+### ksc
+
+ksc - tool for context management also has a little bit different keys
+```
+-l, --list          **list of namespaces (default action in case of w/o any keys)**
+-c, --current       **print current namespace**
+-u, --use           use namespace (default in case of namespace name given as positional argument)
+-n, --namespace     switch also to custom namespace (use with `-u`)
+-t, --trace         show original kubectl command, namespace and context
+--version           print ksx version
+```
+
+### ksx
+
+ksx - service tool for `ksx` management
+```
+-i, --info          print info about ksx tools
+--init              preform initial configuration (e.g. install embedded kubectl, generate config etc)
+--add-to-path       add ksx bin directory to user`s PATH
+--genexecs          generate executable utils (only in python script mode)
+-v, --verbose       be verbose
+--version           print ksx version
+--kubectl-version   install specified kubectl version (default: current stable)
+--no-genconfig      do not generate `ksx.json` while perform `--init`
+--kubectl-shell     use specific shell as command to enter the pod with `-c` command (default: /bin/bash)
+```
