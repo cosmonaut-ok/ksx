@@ -39,40 +39,84 @@ class ApiRes():
         sagroup=parser.add_argument_group('Service arguments')
 
         if self.has_list:
-            cagroup.add_argument('-l', '--list',
+            cagroup.add_argument('--list',
                                  action='store_true',
                                  dest='list',
                                  help='List of {}'.format(self.name)
                                  )
+
+        if self.has_describe:
+            cagroup.add_argument('-v', '--view',
+                             type=str,
+                             dest='describe',
+                             help='describe {}'.format(self.name)
+                             )
+
+        if self.has_info:
+            cagroup.add_argument('-i', '--info',
+                                 type=str,
+                                 dest='info',
+                                 help='info about {}'.format(self.name)
+                                 )
+
+        if self.has_shell:
+            cagroup.add_argument('-c', '--cmd', '--exec',
+                                 type=str,
+                                 dest='shell',
+                                 help='Run shell on a {} container'.format(self.name)
+                                 )
+
+        if self.has_edit:
+            cagroup.add_argument('-e', '--edit',
+                                 type=str,
+                                 dest='edit',
+                                 help='edit {}'.format(self.name)
+                                 )
+
+        if self.has_scale:
+            cagroup.add_argument('-s', '--scale',
+                                 type=str,
+                                 dest='scale',
+                                 help='scale {}. Used with --rpl'.format(self.name)
+                                 )
+
+        if self.has_remove:
+            cagroup.add_argument('-d', '--delete',
+                                 type=str,
+                                 dest='delete',
+                                 help='delete {}'.format(self.name)
+                                 )
+
+        if self.has_top:
+            cagroup.add_argument('--top',
+                                 type=str,
+                                 dest='top',
+                                 help='top of {}. --top all for all {} in namespace, of --top all -A for all {}'.format(self.name, self.name, self.name)
+                                 )
+
+        if self.has_logs:
+            cagroup.add_argument('-l', '--logs',
+                                 type=str,
+                                 dest='logs',
+                                 help='logs from {}'.format(self.name)
+                                 )
+
+        cagroup.add_argument('--wat', '--explain',
+                             action='store_true',
+                             dest='wat',
+                             help='Explain {}'.format(self.name)
+                             )
+
+################################################################################
+
         if self.has_output:
             sagroup.add_argument('-o', '--output',
                                  type=str,
                                  dest='output',
                                  help='output format json|yaml|wide|custom-columns=...|custom-columns-file=...|go-template=...|go-template-file=...|jsonpath=...|jsonpath-file=...]')
 
-        if self.has_shell:
-            cagroup.add_argument('-s', '--shell',
-                                 type=str,
-                                 dest='shell',
-                                 help='Run shell on a {} container'.format(self.name)
-                                 )
-
-        if self.has_shell:
-            sagroup.add_argument('-c', '--cmd',
-                                 type=str,
-                                 dest='cmd',
-                                 help='Custom command for `--shell` argument'
-                                 )
-
         if self.has_containers:
-            cagroup.add_argument('--cl', '--containers-list',
-                                 type=str,
-                                 dest='containers_list',
-                                 help='Get list of {} running containers'.format(self.name)
-                                 )
-
-        if self.has_containers:
-            sagroup.add_argument('--container',
+            sagroup.add_argument('--cnt', '--container',
                                  type=str,
                                  dest='container_name',
                                  help='Operate with single container inside of multicontainer {}'.format(self.name)
@@ -92,32 +136,24 @@ class ApiRes():
                                  help='Set Custom ns to operate with {}'.format(self.name)
                                  )
 
-        if self.has_describe:
-            cagroup.add_argument('-d', '--describe',
-                             type=str,
-                             dest='describe',
-                             help='describe {}'.format(self.name)
+        sagroup.add_argument('-t', '--trace',
+                             action='store_true',
+                             dest='trace',
+                             help='trace real kubectl commands'
                              )
 
-        if self.has_info:
-            cagroup.add_argument('-i', '--info',
+        if self.has_containers:
+            cagroup.add_argument('--cns', '--containers',
                                  type=str,
-                                 dest='info',
-                                 help='describe {}'.format(self.name)
+                                 dest='containers_list',
+                                 help='Get list of {} running containers'.format(self.name)
                                  )
 
-        if self.has_top:
-            cagroup.add_argument('--top',
+        if self.has_shell:
+            sagroup.add_argument('-cc',
                                  type=str,
-                                 dest='top',
-                                 help='top of {}. --top all for all {} in namespace, of --top all -A for all {}'.format(self.name, self.name, self.name)
-                                 )
-
-        if self.has_scale:
-            cagroup.add_argument('--scale',
-                                 type=str,
-                                 dest='scale',
-                                 help='scale {}. Used with --rpl'.format(self.name)
+                                 dest='cmd',
+                                 help='Custom command for `-c/--cmd/--exec` argument'
                                  )
 
         if self.has_scale:
@@ -126,35 +162,7 @@ class ApiRes():
                                  dest='rpl',
                                  help='set replicas number for scale of {}'.format(self.name)
                                  )
-
-
-        if self.has_logs:
-            cagroup.add_argument('--logs',
-                                 type=str,
-                                 dest='logs',
-                                 help='logs from {}'.format(self.name)
-                                 )
-
-        if self.has_remove:
-            cagroup.add_argument('-r', '--remove',
-                                 type=str,
-                                 dest='remove',
-                                 help='remove {}'.format(self.name)
-                                 )
-
-        if self.has_edit:
-            cagroup.add_argument('-e', '--edit',
-                                 type=str,
-                                 dest='edit',
-                                 help='edit {}'.format(self.name)
-                                 )
-
-        sagroup.add_argument('-t', '--trace',
-                             action='store_true',
-                             dest='trace',
-                             help='trace real kubectl commands'
-                             )
-
+ 
         if self.has_labels:
             sagroup.add_argument('--labels',
                                  type=str,
@@ -162,13 +170,7 @@ class ApiRes():
                                  help='Use label to filter out resources'
                                  )
 
-        cagroup.add_argument('--wat', '--explain',
-                             action='store_true',
-                             dest='wat',
-                             help='Explain {}'.format(self.name)
-                             )
-
-        sagroup.add_argument('-v', '--version',
+        sagroup.add_argument('--version',
                              action='store_true',
                              dest='version',
                              help='print version of ksx and exit'
@@ -223,7 +225,7 @@ class ApiRes():
              self.werbs.shell_to_object(self.name, self.args.shell)
         elif self.has_describe and self.args.describe:
             self.werbs.describe_of("{}/{}".format(self.name, self.args.describe))
-        elif self.has_remove and self.args.remove:
+        elif self.has_remove and self.args.delete:
             self.werbs.delete_of("{}/{}".format(self.name, self.args.delete))
         elif self.has_edit and self.args.edit:
             self.werbs.edit_of("{}/{}".format(self.name, self.args.edit))

@@ -108,6 +108,11 @@ elif args.version:
     werbs.print_version()
 elif args.use_context_pos:
     set_current_context(args.use_context_pos[0])
+    if args.use_context_pos[0] == '-':
+        set_current_context(args.use_context_pos[0])
+    else:
+        set_current_context(args.use_context_pos[0])
+    ## if namespace is also given
     if args.namespace:
         cmd = join(dirname(realpath(__file__)), 'ksn') + " {}".format(args.namespace)
         pit(cmd)

@@ -290,7 +290,7 @@ GLOBAL_API_CONFIG = [
     {
 	"name": "certificaterequests",
         "description": "Operate with certificaterequests",
-	"filename": "kscrtreq",
+	"filename": "ksctreq",
         "has_scale": False,
         "has_top": False,
 	"has_list": True,
@@ -308,7 +308,7 @@ GLOBAL_API_CONFIG = [
     {
 	"name": "certificates",
         "description": "Operate with certificates",
-	"filename": "kscrt",
+	"filename": "ksct",
         "has_scale": False,
         "has_top": False,
 	"has_list": True,

@@ -130,7 +130,10 @@ elif args.wat:
 elif args.version:
     werbs.print_version()
 elif args.use_namespace_pos:
-    set_current_namespace(args.use_namespace_pos[0])
+    if args.use_namespace_pos[0] == '-':
+        set_current_namespace(args.use_namespace_pos[0])
+    else:
+        set_current_namespace(args.use_namespace_pos[0])
 elif args.current:
     print(werbs.current_namespace())
 else: # default action is "get namespaces"
