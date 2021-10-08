@@ -124,7 +124,7 @@ def genfiles (verbose=False):
         os.chmod(fname, st.st_mode | stat.S_IEXEC)
         if verbose:
             print("file {} generated".format(i["filename"]))
-        
+
     # ## copy ksc
     # f = open('ksc',"r")
     # copyname = join("bin", "ksc")

@@ -8,17 +8,17 @@ _gen_keywords_by_help()
 
 _gen_completion_list_cache()
 {
+    mkdir -p /tmp/.ksx_cache/
+
     words=""
     cmd=${1}
     ns=$(ksn --current)
-    nsprev=$(cat /tmp/.ksx_current_ns 2>/dev/null)
-    wordsprev=$(cat /tmp/.ksx_current_${cmd}_list 2>/dev/null)
-    if [ ! -z "$wordsprev" ] && [ "$ns" == "$nsprev" ]; then
-	words=$wordsprev
+    cachefile=/tmp/.ksx_cache/current_${cmd}_${ns}_list
+    if [ -f ${cachefile} ] && [ $(echo "$(date +%s)-$(stat -c %Y ${cachefile})<120" | bc) == 1 ]; then
+	words=$(cat ${cachefile} 2>/dev/null)
     else
 	words=$(${cmd} --list | tail -n +2 | awk '{print $1}' | tr '\n' ' ')
-	echo $words > /tmp/.ksx_current_${cmd}_list
-	echo $ns > /tmp/.ksx_current_ns
+	echo $words > ${cachefile}
     fi
 
     printf "$words"
@@ -146,7 +146,7 @@ _ksc_list_completions()
     _common_list_completions ksc
 }
 
-for i in $(grep filename apis.py | cut -d'"' -f4); do
+for i in $(ksx -i | grep '\-' | awk '{print $1}' | tr '\n' ' '); do
     complete -F _${i}_list_completions $i
 done
 
