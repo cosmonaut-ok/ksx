@@ -17,7 +17,7 @@ cagroup=parser.add_argument_group('Werb arguments')
 # service arguments group
 sagroup=parser.add_argument_group('Service arguments')
 
-cagroup.add_argument('-l', '--list',
+cagroup.add_argument('--list',
                     action='store_true',
                     dest='list',
                     help='Suppress Output'
@@ -71,7 +71,7 @@ cagroup.add_argument('--wat',
                     help='Manual about kubernetes PVC'
                     )
 
-sagroup.add_argument('--labels',
+sagroup.add_argument('-l', '--labels',
                     type=str,
                     dest='labels',
                     help='Use label to filter out resources'
@@ -94,17 +94,10 @@ werbs = Werbs(config_path=config, out_format=args.output,
               labels=args.labels, kctl_bin=kctl_bin, trace=args.trace)
 
 
-def print_contexts():
-    cmd = "{} config get-contexts".format(kctl_bin)
-    cmd += out_suffix
-    subprocess.call(cmd, shell=True)
-
-
-def print_namespaces():
-    cmd = "{} get namespaces".format(kctl_bin)
-    cmd += out_suffix
-    subprocess.call(cmd, shell=True)
-
+global labels
+labels = ''
+if args.labels:
+    labels = " -l " + labels
 
 def set_current_namespace(ns):
     curr_context = werbs.current_context()
@@ -120,7 +113,7 @@ def set_current_namespace(ns):
 if args.list:
     werbs.print_of("namespaces")
 elif args.use_namespace:
-    set_current_namespace(args.use_namespace)
+    set_currenyt_namespace(args.use_namespace)
 elif args.describe:
     werbs.describe_of("namespaces/{}".format(args.describe))
 elif args.edit:

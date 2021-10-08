@@ -6,7 +6,6 @@
 
 import os,sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-
 from api_res import ApiRes
 
 def main ():
@@ -24,7 +23,9 @@ def main ():
                  has_labels=$has_labels,
                  has_info=$has_info,
                  has_top=$has_top,
-                 has_scale=$has_scale)
+                 has_scale=$has_scale,
+                 has_use=$has_use,
+                 has_current=$has_current)
     res.run()
 
 if __name__ == "__main__":

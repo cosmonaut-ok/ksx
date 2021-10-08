@@ -111,7 +111,7 @@ def genfiles (verbose=False):
 
     for i in api_config:
         result = ""
-        with open('kstemplate', 'r') as f:
+        with open(i['template'], 'r') as f:
             src = Template(f.read())
             result = src.substitute(i)
 
@@ -125,33 +125,33 @@ def genfiles (verbose=False):
         if verbose:
             print("file {} generated".format(i["filename"]))
         
-    ## copy ksc
-    f = open('ksc',"r")
-    copyname = join("bin", "ksc")
-    copy = open(copyname, "wt")
-    line = f.read()
-    copy.write(str(line))
-    f.close()
-    copy.close()
-    ## chmod +x
-    st = os.stat(copyname)
-    os.chmod(copyname, st.st_mode | stat.S_IEXEC)
-    if verbose:
-        print("file {} copied".format(copyname))
+    # ## copy ksc
+    # f = open('ksc',"r")
+    # copyname = join("bin", "ksc")
+    # copy = open(copyname, "wt")
+    # line = f.read()
+    # copy.write(str(line))
+    # f.close()
+    # copy.close()
+    # ## chmod +x
+    # st = os.stat(copyname)
+    # os.chmod(copyname, st.st_mode | stat.S_IEXEC)
+    # if verbose:
+    #     print("file {} copied".format(copyname))
 
-    ## copy ksn
-    f = open('ksn',"r")
-    copyname = join("bin", "ksn")
-    copy = open(copyname, "wt")
-    line = f.read()
-    copy.write(str(line))
-    f.close()
-    copy.close()
-    ## chmod +x
-    st = os.stat(copyname)
-    os.chmod(copyname, st.st_mode | stat.S_IEXEC)
-    if verbose:
-        print("file {} copied".format(copyname))
+    # ## copy ksn
+    # f = open('ksn',"r")
+    # copyname = join("bin", "ksn")
+    # copy = open(copyname, "wt")
+    # line = f.read()
+    # copy.write(str(line))
+    # f.close()
+    # copy.close()
+    # ## chmod +x
+    # st = os.stat(copyname)
+    # os.chmod(copyname, st.st_mode | stat.S_IEXEC)
+    # if verbose:
+    #     print("file {} copied".format(copyname))
 
     ## copy ksx
     f = open('ksx',"r")
