@@ -439,5 +439,26 @@ GLOBAL_API_CONFIG = [
 	"has_edit": False,
 	"has_labels": False,
 	"has_info": False
+    },
+    {
+	"name": "config",
+        "description": "Operate with kubectl config",
+        "template": "ksconftemplate.py",
+	"filename": "ksconf",
+        "has_current": False,
+        "has_use": False,
+        "has_scale": False,
+        "has_top": False,
+	"has_list": False,
+	"has_output": False,
+	"has_shell": False,
+	"has_containers": False,
+	"has_all_ns": False,
+	"has_describe": True,
+	"has_logs": False,
+	"has_remove": False,
+	"has_edit": False,
+	"has_labels": False,
+	"has_info": False
     }
 ]

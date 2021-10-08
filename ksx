@@ -198,9 +198,15 @@ def install(config_path):
     for i in api_config:
         src=join(bin_dirname, i["filename"])
         dst=join(user_bin_dirname, i["filename"])
-        symlink(src, dst)
+        try:
+            symlink(src, dst)
+        except FileExistsError:
+            pass
 
-    symlink(config_path, join(user_cfg_dirname, "ksx.json"))
+    try:
+        symlink(config_path, join(user_cfg_dirname, "ksx.json"))
+    except FileExistsError:
+        pass
 
 
 def init(kubeversion=None, kubeshell='/bin/bash', no_genconfig=False, genexecs=False, verbose=False):
