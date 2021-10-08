@@ -2,18 +2,22 @@
 
 _gen_keywords_by_help()
 {
-    words="$(${1} --help | grep -Eo '\-[-,a-z,A-Z,0-9,\.]*\ ' | sed 's/\,//g' | sort -u | tr '\n' ' ')"
+    words="$(cat ~/.cache/ksx/cmd_${1}_keys 2>/dev/null)"
+    if [ -z "${words}" ]; then
+	words="$(${1} --help | grep -Eo '\-[-,a-z,A-Z,0-9,\.]*\ ' | sed 's/\,//g' | sort -u | tr '\n' ' ')"
+	echo "$words" > ~/.cache/ksx/cmd_${1}_keys
+    fi
     echo -n "$words"
 }
 
 _gen_completion_list_cache()
 {
-    mkdir -p /tmp/.ksx_cache/
+    mkdir -p ~/.cache/ksx/
 
     words=""
     cmd=${1}
     ns=$(ksn --current)
-    cachefile=/tmp/.ksx_cache/current_${cmd}_${ns}_list
+    cachefile=~/.cache/ksx/current_${cmd}_${ns}_list
     if [ -f ${cachefile} ] && [ $(echo "$(date +%s)-$(stat -c %Y ${cachefile})<120" | bc) == 1 ]; then
 	words=$(cat ${cachefile} 2>/dev/null)
     else
@@ -21,7 +25,7 @@ _gen_completion_list_cache()
 	echo $words > ${cachefile}
     fi
     # clear cache
-    find /tmp/.ksx_cache/ -type f -mmin +2
+    find ~/.cache/ksx/ -type f -mmin +2 -delete
     printf "$words"
 }
 

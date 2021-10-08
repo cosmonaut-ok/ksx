@@ -4,7 +4,8 @@ import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from os.path import join, realpath, dirname, exists
-from os import makedirs
+from os import makedirs, symlink
+from pathlib import Path
 
 import stat
 import subprocess
@@ -104,7 +105,7 @@ def genfiles (verbose=False):
     ## create directory
     try:
         os.makedirs("bin")
-    except:
+    except FileExistsError:
         pass
 
     api_config = apis.GLOBAL_API_CONFIG
@@ -168,6 +169,40 @@ def genfiles (verbose=False):
         print("file {} copied".format(copyname))
 
 
+def install(config_path):
+    # install binaries
+    bin_dirname = dirname(realpath(__file__))
+    if not (re.match(r'bin$', bin_dirname) or re.match(r'bin/$', bin_dirname)): # real ksx path is one level upper, then "bin"
+        bin_dirname = join(dirname(realpath(__file__)), "bin")
+
+    user_bin_dirname=join(Path.home(), "bin")
+    user_cfg_dirname=join(Path.home(), ".config", "ksx")
+    user_cache_dirname=join(Path.home(), ".cache", "ksx")
+    ## make local bin dir if not exists
+    try:
+        os.makedirs(user_bin_dirname)
+    except FileExistsError:
+        pass
+
+    try:
+        os.makedirs(user_cfg_dirname)
+    except FileExistsError:
+        pass
+
+    try:
+        os.makedirs(user_cache_dirname)
+    except FileExistsError:
+        pass
+
+    api_config = apis.GLOBAL_API_CONFIG
+    for i in api_config:
+        src=join(bin_dirname, i["filename"])
+        dst=join(user_bin_dirname, i["filename"])
+        symlink(src, dst)
+
+    symlink(config_path, join(user_cfg_dirname, "ksx.json"))
+
+
 def init(kubeversion=None, kubeshell='/bin/bash', no_genconfig=False, genexecs=False, verbose=False):
     if am_i_bin:
         kctl_path=join(dirname(realpath(__file__)), 'kubectl')
@@ -183,6 +218,8 @@ def init(kubeversion=None, kubeshell='/bin/bash', no_genconfig=False, genexecs=F
 
     if not am_i_bin and genexecs:
         genfiles(verbose)
+
+    install(config_path)
 
 
 def add_to_path(verbose=False):
@@ -296,30 +333,6 @@ kubernetes resouce, like `pod`, `ingress` etc. The list of ksX tools:
 
     for i in apis.GLOBAL_API_CONFIG:
         print("{}\t- {}".format(i["filename"], i["description"]))
-
-# OPTIONS (common for all tools):
-#   one optional positional argument
-#   with default action (depends on tool):
-#   -h, --help\t\t\t\tshow help message and exit
-#   -l, --list\t\t\t\tlist of objects of selected type
-#   -d <OBJECT>, --describe <OBJECT>\tdescribe object
-#   -e <OBJECT>, --edit <OBJECT>\t\tedit object
-#   --del <OBJECT>, --delete <OBJECT>\tdelete object (deprecated), see --remove
-#   --scale <OBJECT>\t\t\tscale object. Use only with --rpl, --replicas
-#   --rpl <NUMBER>, --replicas <NUMBER>\tNumber of replicas to scale
-#   --r, <OBJECT>, --remove <OBJECT>\tremove (delete) object
-#   --wat\t\t\t\t\tManual about object operations (like kubectl explain)
-#   -o <OUTPUT>, --output <OUTPUT>\toutput format, based on original kubectl types:
-# \t\t\t\t\t json|yaml|wide|custom-
-# \t\t\t\t\t columns=...|custom-columns-file=...|go-
-# \t\t\t\t\t template=...|go-template-
-# \t\t\t\t\t file=...|jsonpath=...|jsonpath-file=...]
-#   -t, --trace\t\t\t\tprint real kubectl commands
-#   -v, --version\t\t\t\tshow version of application
-#   --labels LABELS\t\t\tUse label to filter out objects
-
-
-
 
 if __name__ == "__main__":
     main()
