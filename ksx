@@ -228,6 +228,13 @@ def init(kubeversion=None, kubeshell='/bin/bash', no_genconfig=False, genexecs=F
     install(config_path)
 
 
+def run_kubectl(kctl_path=None, command=''):
+    if not kctl_path:
+        kctl_path=join(dirname(realpath(__file__)), 'kubectl')
+    cmd = "{} {}".format(kctl_path, command)
+    subprocess.call(cmd, shell=True)
+
+
 def add_to_path(verbose=False):
     profile_path = join(os.environ['HOME'], ".profile")
     ## try bashrc
@@ -256,6 +263,12 @@ def main ():
                         action='store_true',
                         dest='info',
                         help='Show info about ksx tools'
+                        )
+
+    parser.add_argument('-k', '--kubectl',
+                        type=str,
+                        dest='kubectl',
+                        help='run kubectl directly'
                         )
 
     parser.add_argument('--init',
@@ -315,7 +328,9 @@ def main ():
     except:
         pass
 
-    if args.info:
+    if args.kubectl:
+        run_kubectl(command=args.kubectl)
+    elif args.info:
         show_extended_help()
     elif args.init or genexecs:
         init(args.kubeversion, args.kubeshell, args.nogenconfig, genexecs, args.verbose)
