@@ -20,7 +20,8 @@ _gen_completion_list_cache()
 	words=$(${cmd} --list | tail -n +2 | awk '{print $1}' | tr '\n' ' ')
 	echo $words > ${cachefile}
     fi
-
+    # clear cache
+    find /tmp/.ksx_cache/ -type f -mmin +2
     printf "$words"
 }
 
