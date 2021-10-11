@@ -19,7 +19,7 @@ if match(r'bin$', import_dir) or match(r'bin/$', import_dir):
 
 sys.path.append(import_dir)
 
-import apis
+from apis import GLOBAL_API_CONFIG
 # import os, stat, subprocess
 # import http.client, json
 # from urllib.parse import urlparse
@@ -60,7 +60,7 @@ def http_get(domain, path, verbose=False):
 
 
 def install_kubectl(kubepath=None, kubeversion=None, verbose=False):
-    api_config = apis.GLOBAL_API_CONFIG
+    api_config = GLOBAL_API_CONFIG
 
     if not kubepath:
         kubepath = join(api_config["binpath"], 'kubectl')
@@ -95,7 +95,7 @@ def install_kubectl(kubepath=None, kubeversion=None, verbose=False):
 def compile(verbose=False):
     global local_bin_subdir
     # get "werbs" template
-    api_config = apis.GLOBAL_API_CONFIG
+    api_config = GLOBAL_API_CONFIG
 
     for i in api_config["conf"]:
         result = ""
@@ -128,14 +128,15 @@ def compile(verbose=False):
     # self compile
     self_src = realpath(__file__)
     self_resfile = join(dist_bindir, 'ksx')
-    self_content = ""
+    self_content = "#!/usr/bin/env python\n"
     # add apis to self content
     with open(join(import_dir, 'apis.py'), 'r') as f:
-        self_content = f.read()
+        self_content += f.read()
     ## copy/edit self to new file
     with open(self_src, 'r') as f:
-        self_content = f.read()
-    self_content = re.sub(r'import apis', '', self_content) ## do not import apis in compiled file
+        self_content += '\n'
+        self_content += f.read()
+    self_content = re.sub(r'from apis import GLOBAL_API_CONFIG', '', self_content) ## do not import apis in compiled file
     self_content = re.sub(r'is_compiled.*=.*False', 'is_compiled = True', self_content)
     with open(self_resfile, 'w') as f:
         f.write(self_content)
@@ -143,7 +144,7 @@ def compile(verbose=False):
 
 
 def install(verbose=False):
-    api_config = apis.GLOBAL_API_CONFIG
+    api_config = GLOBAL_API_CONFIG
     dist_bindir = join(import_dir, local_bin_subdir)
 
     ## create bin path if not exist
@@ -165,7 +166,7 @@ def install(verbose=False):
 
 
 def uninstall(kubepath=None, verbose=False):
-    api_config = apis.GLOBAL_API_CONFIG
+    api_config = GLOBAL_API_CONFIG
     dist_bindir = join(import_dir, local_bin_subdir)
 
     if not kubepath:
@@ -192,7 +193,7 @@ def uninstall(kubepath=None, verbose=False):
 
 
 def add_to_path(verbose=False):
-    api_config = apis.GLOBAL_API_CONFIG
+    api_config = GLOBAL_API_CONFIG
     path=api_config["binpath"]
 
     if not search(path, os.environ.get('PATH')):
@@ -217,7 +218,7 @@ def add_to_path(verbose=False):
 
 
 def genconfig (kubepath=None, shell='/bin/bash', verbose=False):
-    api_config = apis.GLOBAL_API_CONFIG
+    api_config = GLOBAL_API_CONFIG
 
     # make config directory
     os.makedirs(api_config["configpath"], exist_ok = True)
@@ -243,7 +244,7 @@ def genconfig (kubepath=None, shell='/bin/bash', verbose=False):
 
 
 def run_kubectl(kubeargs="", kubepath=None, verbose=False):
-    api_config = apis.GLOBAL_API_CONFIG
+    api_config = GLOBAL_API_CONFIG
 
     config = join(api_config["configpath"], api_config["configname"])
 
@@ -261,7 +262,7 @@ def run_kubectl(kubeargs="", kubepath=None, verbose=False):
 
 
 def show_extended_help ():
-    api_config = apis.GLOBAL_API_CONFIG
+    api_config = GLOBAL_API_CONFIG
     print('''ksX is a collection of tools for kubernetes, wrapped over standard
 kubernetes control tool `kubectl`.  The motivation of ksX is to
 develop more `laconic` kubectl, that also follows unix way principle:
@@ -331,7 +332,7 @@ def main():
 
     parser.add_argument("kubectl_run",
                         type=str,
-                        help="Use '{} <r|run> [kubectl args]' to run kubectl directly with its arguments".format(__file__, __file__),
+                        help="Use 'ksx <r|run> [kubectl args]' to run kubectl directly with its arguments".format(__file__),
                         nargs='*')
 
     parser.add_argument('-v', '--verbose',

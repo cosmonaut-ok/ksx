@@ -37,8 +37,8 @@ _common_list_completions()
     if [ ! -z "$(echo ${COMP_WORDS[1]} | grep -E '^[0-9,a-z,A-Z]')" ]; then
 	# COMPREPLY=($(compgen -W "foo bar baz" "${COMP_WORDS[1]}"))
 	COMPREPLY=($(compgen -W "$WORDS" "${COMP_WORDS[1]}"))
-    elif [ ! -z "$(echo ${COMP_WORDS[${#COMP_WORDS[@]}-2]} | grep -Eo '\-\-(view|info|edit|delete|command|cmd|exec)')" ] || \
-	     [ ! -z "$(echo ${COMP_WORDS[${#COMP_WORDS[@]}-2]} | grep -Eo '\-(v|i|e|d|c)')" ]; then
+    elif [ ! -z "$(echo ${COMP_WORDS[${#COMP_WORDS[@]}-2]} | grep -Eo '\-\-(view|info|edit|delete|exec)')" ] || \
+	     [ ! -z "$(echo ${COMP_WORDS[${#COMP_WORDS[@]}-2]} | grep -Eo '\-(v|i|e|d|c|x)')" ]; then
 	COMPREPLY=($(compgen -W "$WORDS" "${COMP_WORDS[${#COMP_WORDS[@]}-1]}"))
     else
 	WORDS=$(_gen_keywords_by_help ${1})
