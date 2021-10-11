@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 
-import sys
+import sys, os, stat, subprocess, http.client, argparse
+from json import loads, dumps
+from urllib.parse import urlparse
 from os.path import dirname, realpath, join, exists
 from re import match, search
+from string import Template # native templating
 
-global import_dir, local_bin_subdir
+global import_dir, local_bin_subdir, amibin
+
+amibin = False
 
 local_bin_subdir = "bin"
 
@@ -14,12 +19,10 @@ if match(r'bin$', import_dir) or match(r'bin/$', import_dir):
 
 sys.path.append(import_dir)
 
-from string import Template # native templating
 import apis
-import os, stat, subprocess
-
-import http.client, json
-from urllib.parse import urlparse
+# import os, stat, subprocess
+# import http.client, json
+# from urllib.parse import urlparse
 
 
 def http_get(domain, path, verbose=False):
@@ -207,10 +210,69 @@ def genconfig (kubepath=None, shell='/bin/bash', verbose=False):
         outfile.write(json_object)
 
 
-compile(True)
-install(True)
-# uninstall(True)
+def main():
+    # parser = argparse.ArgumentParser(description=description)
+    parser = argparse.ArgumentParser()
 
-# add_to_path(True)
-# genconfig(verbose=True)
-# install_kubectl(verbose=True)
+    parser.add_argument('--compile',
+                        action='store_true',
+                        dest='compile',
+                        help='Compile ksx script files'
+                        )
+
+    parser.add_argument('--install',
+                        action='store_true',
+                        dest='install',
+                        help='Install ksx script files'
+                        )
+
+    parser.add_argument('--uninstall',
+                        action='store_true',
+                        dest='uninstall',
+                        help='Uninstall ksx script files'
+                        )
+
+    parser.add_argument('--add-to-path',
+                        action='store_true',
+                        dest='add_to_path',
+                        help="Add ksx scripts bin directory to user's PATH"
+                        )
+
+    parser.add_argument('--kubectl-version',
+                        dest='kubeversion',
+                        type=str,
+                        help='Install specified kubectl version (default: current stable)',
+                        default=None
+                        )
+
+    parser.add_argument('--genconfig',
+                        action='store_true',
+                        dest='genconfig',
+                        help='Generate standard ksx configfile'
+                        )
+
+    parser.add_argument('--kubectl-defcmd',
+                        dest='kubecmd',
+                        type=str,
+                        help="Default command to exec with 'ksp -x <pod>', 'ksd -x <deployment>' etc. (default: /bin/bash)",
+                        default='/bin/bash'
+                        )
+
+
+    parser.add_argument('-k', '--kuberun',
+                        action='store_true',
+                        dest='kuberun',
+                        help='run kubectl directly'
+                        )
+
+    compile(True)
+    install(True)
+    # uninstall(True)
+
+    # add_to_path(True)
+    # genconfig(verbose=True)
+    # install_kubectl(verbose=True)
+
+
+if __name__ == "__main__":
+    main()

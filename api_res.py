@@ -37,6 +37,14 @@ class ApiRes():
         self.has_use = has_use
         self.has_current = has_current
 
+        self.kctl_bin = "/dev/null"
+        self.pod_shell = ""
+
+        with open(self.config, 'r') as f:
+            json = loads(f.read())
+            self.pod_shell = json['shell'] if json['shell'] else '/bin/sh'
+            self.kctl_bin = json['cmd'] if json['cmd'] else 'kubectl'
+
         parser = argparse.ArgumentParser(description=description)
 
         parser.add_argument("describe_res_pos",
@@ -73,10 +81,10 @@ class ApiRes():
                                  )
 
         if self.has_shell:
-            cagroup.add_argument('-c', '--command', '--cmd', '--exec',
+            cagroup.add_argument('-x', '--exec',
                                  type=str,
                                  dest='shell',
-                                 help='Run shell on a {} container'.format(self.name)
+                                 help='Run command on a {} container (default is {})'.format(self.name, self.pod_shell)
                                  )
 
         if self.has_edit:
@@ -87,7 +95,7 @@ class ApiRes():
                                  )
 
         if self.has_current:
-            cagroup.add_argument('-.', '--current',
+            cagroup.add_argument('-.', '-c', '--current',
                                  action='store_true',
                                  dest='current',
                                  help='print current {}'.format(self.name)
@@ -177,10 +185,10 @@ class ApiRes():
                                  )
 
         if self.has_shell:
-            sagroup.add_argument('-cc',
+            sagroup.add_argument('--cc',
                                  type=str,
                                  dest='cmd',
-                                 help='Custom command for `-c/--cmd/--exec` argument'
+                                 help='Custom command for `-x/--exec` argument'
                                  )
 
         if self.has_scale:
@@ -205,46 +213,21 @@ class ApiRes():
 
         self.args = parser.parse_args()
 
-        self.kctl_bin = "/dev/null"
-        self.pod_shell = ""
+        if self.has_shell and self.args.cmd:
+            self.pod_shell = self.args.cmd
 
-        # config=join(dirname(dirname(realpath(__file__))), 'ksx.json')
+        # labels=None
+        labels=self.args.labels if self.has_labels and self.args.labels else None
+        output=self.args.output if self.has_output and self.args.output else None
+        all_ns=self.args.all_namespaces if self.has_all_ns and self.args.all_namespaces else None
 
-        with open(self.config, 'r') as f:
-            json = loads(f.read())
-            try:
-                self.pod_shell = self.args.cmd
-            except:
-                pass
-            if not self.pod_shell:
-                self.pod_shell = json['shell'] if json['shell'] else '/bin/sh'
-
-            self.kctl_bin = json['cmd'] if json['cmd'] else 'kubectl'
-
-            labels=None
-            try:
-                labels=self.args.labels
-            except:
-                pass
-
-            output=None
-            try:
-                output=self.args.output
-            except:
-                pass
-
-            all_ns=None
-            try:
-                all_ns=self.args.all_namespaces
-            except:
-                pass
-
-            self.werbs = Werbs(config_path=self.config,
-                               out_format=output,
-                               labels=labels,
-                               kctl_bin=self.kctl_bin,
-                               all_ns=all_ns,
-                               trace=self.args.trace)
+        self.werbs = Werbs(config_path=self.config,
+                           out_format=output,
+                           labels=labels,
+                           pod_shell=self.pod_shell,
+                           kctl_bin=self.kctl_bin,
+                           all_ns=all_ns,
+                           trace=self.args.trace)
 
 
     def run(self):

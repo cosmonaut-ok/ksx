@@ -3,7 +3,7 @@ import subprocess
 # from simple_term_menu import TerminalMenu
 
 class Werbs():
-    def __init__(self, out_format=None, pod_shell="/bin/bash", kctl_bin="kubectl", namespace=None, all_ns=False, trace=False, labels=None, config_path=None):
+    def __init__(self, out_format=None, pod_shell=None, kctl_bin=None, namespace=None, all_ns=False, trace=False, labels=None, config_path=None):
 
         if config_path:
             json = loads(open(config_path).read())
@@ -18,9 +18,8 @@ class Werbs():
             else:
                 self.ns = ""
 
-            # self.out_suffix = out_suffix
-            self.shell = json['shell'] if json['shell'] else '/bin/sh'
-            self.kctl = json['cmd'] if json['cmd'] else 'kubectl'
+            self.shell = pod_shell if pod_shell else json['shell'] if json['shell'] else '/bin/sh'
+            self.kctl = kctl_bin if kctl_bin else json['cmd'] if json['cmd'] else 'kubectl'
 
             self.trace = trace
             self.labels = labels
@@ -183,12 +182,6 @@ class Werbs():
         cmd = "{} exec --stdin --tty {}/{} --container {} -- {}".format(self.kctl, object_type, object_name, container_name, self.shell)
         self.__pit(cmd)
         subprocess.call(cmd, shell=True)
-        # status = subprocess.call(cmd, shell=True)
-        # if status > 0:
-        #     print("ERROR occured during login with {}. Falling back to /bin/sh".format(self.shell))
-        #     cmd = "{} exec --stdin --tty {}/{} --container {} -- /bin/sh".format(self.kctl, object_type, object_name, container_name)
-        #     self.__pit(cmd)
-        #     subprocess.call(cmd, shell=True)
 
 
     def logs_to_container(self, object_type, object_name, container_name):
