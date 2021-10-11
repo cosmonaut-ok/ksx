@@ -260,6 +260,20 @@ def run_kubectl(kubeargs="", kubepath=None, verbose=False):
         print("cmd: `{}`; namespace: `{}`; context: `{}`".format(cmd, ns, curr_context))
 
 
+def show_extended_help ():
+    api_config = apis.GLOBAL_API_CONFIG
+    print('''ksX is a collection of tools for kubernetes, wrapped over standard
+kubernetes control tool `kubectl`.  The motivation of ksX is to
+develop more `laconic` kubectl, that also follows unix way principle:
+`Make each program do one thing well` and principle of least
+astonishment. So, each ksX's tool is very simple and bound to some
+kubernetes resouce, like `pod`, `ingress` etc. The list of ksX tools:
+''')
+
+    for i in api_config['conf']:
+        print("{}\t- {}".format(i["filename"], i["description"]))
+
+
 def main():
     parser = argparse.ArgumentParser(description="Service tool for ksx tools collection")
 
@@ -327,6 +341,13 @@ def main():
                         default=False
                         )
 
+    parser.add_argument('-i', '--info',
+                        action='store_true',
+                        dest='info',
+                        help='Print extended information about ksx tools and exit',
+                        default=False
+                        )
+
 
     args = parser.parse_args()
 
@@ -349,8 +370,11 @@ def main():
         add_to_path(args.verbose)
     elif args.genconfig:
         genconfig(kubepath=args.kubepath, shell=args.kubecmd, verbose=args.verbose)
+    elif args.info:
+        show_extended_help()
     else:
         parser.print_help()
+
 
 if __name__ == "__main__":
     main()
