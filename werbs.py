@@ -41,13 +41,13 @@ class Werbs():
 
 
     def current_namespace(self):
-        cmd = self.kctl + " config view --minify --output 'jsonpath={..namespace}'"
+        cmd = self.kctl + " config view --minify --output 'jsonpath={..namespace}' 2>/dev/null"
         curr = subprocess.getoutput(cmd)
         return curr
 
 
     def current_context(self):
-        cmd = "kubectl config current-context" # get-contexts -o name
+        cmd = "kubectl config current-context 2>/dev/null" # get-contexts -o name
         curr = subprocess.getoutput(cmd)
         return curr
 

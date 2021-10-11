@@ -100,3 +100,23 @@ namespaces                                                   +
 contexts                                                     +
 nodes                                                        -
 pods                                                         +
+
+
+
+## Installation
+
+run
+```bash
+$ ./ksx --install
+$ ./ksx --add-to-path # optional
+$ ./ksx --install-completions # optional
+```
+Installation bin path: <USER_HOME>/bin
+Kubectl default path: <USER_HOME>/bin
+Installation config path: <USER_HOME>/.conf/ksx/ksx.json
+Ksx cache path: <USER_HOME>/.conf/ksx/ksx.json
+
+### (Re)generate configfile
+```bash
+./ksx --genconfig [--kubectl-path <custom path>] [--kubectl-defcmd <custom kubectl default exec command (e.g. /bin/zsh)>]
+```

@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 
-import sys, os, stat, subprocess, http.client, argparse
+import sys, os, stat, subprocess, http.client, argparse, re
 from json import loads, dumps
 from urllib.parse import urlparse
 from os.path import dirname, realpath, join, exists
 from re import match, search
 from string import Template # native templating
 
-global import_dir, local_bin_subdir, amibin
+global import_dir, local_bin_subdir, is_compiled
 
-amibin = False
+is_compiled = False 
 
 local_bin_subdir = "bin"
 
@@ -24,6 +24,11 @@ import apis
 # import http.client, json
 # from urllib.parse import urlparse
 
+def chmod_x(path, verbose=False):
+    st = os.stat(path)
+    os.chmod(path, st.st_mode | stat.S_IEXEC)
+    if verbose:
+        print("file {} generated".format(path))
 
 def http_get(domain, path, verbose=False):
     is_got = False
@@ -59,6 +64,7 @@ def install_kubectl(kubepath=None, kubeversion=None, verbose=False):
 
     if not kubepath:
         kubepath = join(api_config["binpath"], 'kubectl')
+    kubepath = os.path.expanduser(kubepath)
 
     if not kubeversion:
         kubeversion = http_get("dl.k8s.io", "/release/stable.txt", verbose).decode('utf-8')
@@ -73,21 +79,17 @@ def install_kubectl(kubepath=None, kubeversion=None, verbose=False):
     if exists(kubepath):
         try:
             cmd = "{} version --client=true -o json".format(kubepath)
-            kubeversion_local = json.loads(subprocess.check_output(cmd, shell=True))['clientVersion']['gitVersion']
+            kubeversion_local = loads(subprocess.check_output(cmd, shell=True))['clientVersion']['gitVersion']
         except FileExistsError:
             pass
 
     if kubeversion_local != kubeversion:
-        kctl_bin = http_get("dl.k8s.io", "/release/{}/bin/linux/amd64/kubectl".format(kubeversion))
-
         if verbose:
             print("Saving kubectl to {}".format(kubepath))
+        kctl_bin = http_get("dl.k8s.io", "/release/{}/bin/linux/amd64/kubectl".format(kubeversion))
         with open(kubepath, "wb") as f:
             f.write(kctl_bin)
-
-        ## chmod +x
-        st = os.stat(kubepath)
-        os.chmod(kubepath, st.st_mode | stat.S_IEXEC)
+        chmod_x(kubepath)
 
 
 def compile(verbose=False):
@@ -121,43 +123,72 @@ def compile(verbose=False):
             result = src.substitute(i)
         with open(resfile, 'a') as f:
             f.write(result)
+        chmod_x(resfile)
 
-        # chmod +x
-        st = os.stat(resfile)
-        os.chmod(resfile, st.st_mode | stat.S_IEXEC)
-        if verbose:
-            print("file {} generated".format(i["filename"]))
-            
+    # self compile
+    self_src = realpath(__file__)
+    self_resfile = join(dist_bindir, 'ksx')
+    self_content = ""
+    # add apis to self content
+    with open(join(import_dir, 'apis.py'), 'r') as f:
+        self_content = f.read()
+    ## copy/edit self to new file
+    with open(self_src, 'r') as f:
+        self_content = f.read()
+    self_content = re.sub(r'import apis', '', self_content) ## do not import apis in compiled file
+    self_content = re.sub(r'is_compiled.*=.*False', 'is_compiled = True', self_content)
+    with open(self_resfile, 'w') as f:
+        f.write(self_content)
+    chmod_x(self_resfile)
+
 
 def install(verbose=False):
     api_config = apis.GLOBAL_API_CONFIG
     dist_bindir = join(import_dir, local_bin_subdir)
 
+    ## create bin path if not exist
+    os.makedirs(api_config["binpath"], exist_ok=True)
+
     for i in api_config["conf"]:
         origpath = join(dist_bindir, i["filename"])
         copypath = join(api_config["binpath"], i["filename"])
+        if verbose:
+            print("installing file {} to {}".format(i["filename"], api_config["binpath"]))
         orig = open(origpath, "r")
         copy = open(copypath, "wt")
         line = orig.read()
         copy.write(str(line))
         orig.close()
         copy.close()
-        ## chmod +x
-        st = os.stat(copypath)
-        os.chmod(copypath, st.st_mode | stat.S_IEXEC)
-        if verbose:
-            print("file {} installed".format(copypath))
+
+        chmod_x(copypath)
 
 
-def uninstall(verbose=False):
+def uninstall(kubepath=None, verbose=False):
     api_config = apis.GLOBAL_API_CONFIG
     dist_bindir = join(import_dir, local_bin_subdir)
 
+    if not kubepath:
+        kubepath = join(api_config["binpath"], 'kubectl')
+    kubepath = os.path.expanduser(kubepath)
+
     for i in api_config["conf"]:
         path = join(api_config["binpath"], i["filename"])
-        os.remove(path) 
+        try:
+            os.remove(path)
+            if verbose:
+                print("file {} removed".format(path))
+        except FileNotFoundError:
+            if verbose:
+                print("file {} not found. Skip".format(path))
+
+    try:
+        os.remove(kubepath)
         if verbose:
-            print("file {} removed".format(path))
+            print("file {} removed".format(kubepath))
+    except FileNotFoundError:
+        if verbose:
+            print("file {} not found. Skip".format(kubepath))
 
 
 def add_to_path(verbose=False):
@@ -195,6 +226,7 @@ def genconfig (kubepath=None, shell='/bin/bash', verbose=False):
     ## set default kubepath
     if not kubepath:
         kubepath = join(api_config["binpath"], 'kubectl')
+    kubepath = os.path.expanduser(kubepath)
 
     ## setup config file
     config = {
@@ -202,23 +234,41 @@ def genconfig (kubepath=None, shell='/bin/bash', verbose=False):
         "shell": shell
     }
 
-    json_object = json.dumps(config, indent = 2)
+    json_object = dumps(config, indent = 2)
 
     if verbose:
-        print("Generating configfile")
+        print("Generating configfile {}".format(configpath))
     with open(configpath, "w") as outfile:
         outfile.write(json_object)
 
 
-def main():
-    # parser = argparse.ArgumentParser(description=description)
-    parser = argparse.ArgumentParser()
+def run_kubectl(kubeargs="", kubepath=None, verbose=False):
+    api_config = apis.GLOBAL_API_CONFIG
 
-    parser.add_argument('--compile',
-                        action='store_true',
-                        dest='compile',
-                        help='Compile ksx script files'
-                        )
+    config = join(api_config["configpath"], api_config["configname"])
+
+    if not kubepath:
+        kubepath = join(api_config["binpath"], 'kubectl')
+    kubepath = os.path.expanduser(kubepath)
+
+    cmd = "{} {}".format(kubepath, kubeargs)
+    subprocess.call(cmd, shell=True)
+    if verbose:
+        werbs = Werbs(trace=verbose)
+        ns = werbs.current_namespace()
+        curr_context = werbs.current_context()
+        print("cmd: `{}`; namespace: `{}`; context: `{}`".format(cmd, ns, curr_context))
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Service tool for ksx tools collection")
+
+    if not is_compiled:
+        parser.add_argument('--compile',
+                            action='store_true',
+                            dest='compile',
+                            help='Compile ksx script files'
+                            )
 
     parser.add_argument('--install',
                         action='store_true',
@@ -251,6 +301,13 @@ def main():
                         help='Generate standard ksx configfile'
                         )
 
+    parser.add_argument('--kubectl-path',
+                        dest='kubepath',
+                        type=str,
+                        help="Default command to exec with 'ksp -x <pod>', 'ksd -x <deployment>' etc. (default: /bin/bash)",
+                        default=None
+                        )
+
     parser.add_argument('--kubectl-defcmd',
                         dest='kubecmd',
                         type=str,
@@ -258,21 +315,42 @@ def main():
                         default='/bin/bash'
                         )
 
+    parser.add_argument("kubectl_run",
+                        type=str,
+                        help="Use '{} <r|run> [kubectl args]' to run kubectl directly with its arguments".format(__file__, __file__),
+                        nargs='*')
 
-    parser.add_argument('-k', '--kuberun',
+    parser.add_argument('-v', '--verbose',
                         action='store_true',
-                        dest='kuberun',
-                        help='run kubectl directly'
+                        dest='verbose',
+                        help='Run verbose',
+                        default=False
                         )
 
-    compile(True)
-    install(True)
-    # uninstall(True)
 
-    # add_to_path(True)
-    # genconfig(verbose=True)
-    # install_kubectl(verbose=True)
+    args = parser.parse_args()
 
+    if len(args.kubectl_run) > 0:
+        if args.kubectl_run[0] == 'run' or args.kubectl_run[0] == 'r':
+            args.kubectl_run.pop(0)
+            print(args.kubectl_run)
+            run_kubectl(kubeargs=" ".join([x for x in args.kubectl_run]))
+    elif not is_compiled and args.compile:
+        compile(args.verbose)
+    elif args.install:
+        if not is_compiled:
+            compile(args.verbose)
+            install(args.verbose)
+        install_kubectl(kubepath=args.kubepath, kubeversion=args.kubeversion, verbose=args.verbose)
+        genconfig(kubepath=args.kubepath, shell=args.kubecmd, verbose=args.verbose)
+    elif args.uninstall:
+        uninstall(kubepath=args.kubepath, verbose=args.verbose)
+    elif args.add_to_path:
+        add_to_path(args.verbose)
+    elif args.genconfig:
+        genconfig(kubepath=args.kubepath, shell=args.kubecmd, verbose=args.verbose)
+    else:
+        parser.print_help()
 
 if __name__ == "__main__":
     main()
