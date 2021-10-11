@@ -6,16 +6,16 @@
 
 import os,sys,subprocess
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-from api_res import ApiRes
+# from api_res import ApiRes
 
 class ApiNameSpace(ApiRes):
-    def __init__(self, name, description, has_list, has_output, has_shell,
+    def __init__(self, name, description, config, has_list, has_output, has_shell,
                  has_containers, has_all_ns, has_describe, has_logs, has_remove,
                  has_edit, has_labels, has_info, has_top, has_scale,
                  has_use, has_current):
 
-        super(ApiNameSpace, self).__init__(name, description, has_list,
-                                           has_output, has_shell,
+        super(ApiNameSpace, self).__init__(name, description, config, 
+                                           has_list, has_output, has_shell,
                                            has_containers, has_all_ns,
                                            has_describe, has_logs, has_remove,
                                            has_edit, has_labels, has_info,
@@ -85,6 +85,7 @@ class ApiNameSpace(ApiRes):
 def main ():
     res = ApiNameSpace("$name",
                        description="$description",
+                       config="$config",
                        has_list=$has_list,
                        has_output=$has_output,
                        has_shell=$has_shell,

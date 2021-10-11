@@ -9,17 +9,18 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from os.path import join, realpath, dirname
 import subprocess, argparse
-from werbs import Werbs
+# from werbs import Werbs
 from json import loads, dumps
 
 
 class ApiRes():
-    def __init__(self, name, description, has_list, has_output, has_shell,
+    def __init__(self, name, description, config, has_list, has_output, has_shell,
                  has_containers, has_all_ns, has_describe, has_logs, has_remove,
                  has_edit, has_labels, has_info, has_top, has_scale,
                  has_use, has_current):
 
         self.name = name
+        self.config = config
         self.has_list = has_list
         self.has_output = has_output
         self.has_shell = has_shell
@@ -207,9 +208,9 @@ class ApiRes():
         self.kctl_bin = "/dev/null"
         self.pod_shell = ""
 
-        config=join(dirname(dirname(realpath(__file__))), 'ksx.json')
+        # config=join(dirname(dirname(realpath(__file__))), 'ksx.json')
 
-        with open(config, 'r') as f:
+        with open(self.config, 'r') as f:
             json = loads(f.read())
             try:
                 self.pod_shell = self.args.cmd
@@ -238,7 +239,7 @@ class ApiRes():
             except:
                 pass
 
-            self.werbs = Werbs(config_path=config,
+            self.werbs = Werbs(config_path=self.config,
                                out_format=output,
                                labels=labels,
                                kctl_bin=self.kctl_bin,

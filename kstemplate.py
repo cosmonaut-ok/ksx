@@ -6,11 +6,12 @@
 
 import os,sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-from api_res import ApiRes
+# from api_res import ApiRes
 
 def main ():
     res = ApiRes("$name",
                  description="$description",
+                 config="$config",
                  has_list=$has_list,
                  has_output=$has_output,
                  has_shell=$has_shell,

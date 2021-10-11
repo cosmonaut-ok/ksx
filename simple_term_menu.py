@@ -1859,73 +1859,73 @@ def parse_arguments() -> AttributeDict:
     return args
 
 
-def main() -> None:
-    try:
-        args = parse_arguments()
-    except SystemExit:
-        sys.exit(0)  # Error code 0 is the error case in this program
-    except NoMenuEntriesError as e:
-        print(str(e), file=sys.stderr)
-        sys.exit(0)
-    if args.print_version:
-        print("{}, version {}".format(os.path.basename(sys.argv[0]), __version__))
-        sys.exit(0)
-    try:
-        terminal_menu = TerminalMenu(
-            menu_entries=args.entries,
-            clear_menu_on_exit=args.clear_menu_on_exit,
-            clear_screen=args.clear_screen,
-            cursor_index=args.cursor_index,
-            cycle_cursor=args.cycle,
-            exit_on_shortcut=args.exit_on_shortcut,
-            menu_cursor=args.cursor,
-            menu_cursor_style=args.cursor_style,
-            menu_highlight_style=args.highlight_style,
-            multi_select=args.multi_select,
-            multi_select_cursor=args.multi_select_cursor,
-            multi_select_cursor_brackets_style=args.multi_select_cursor_brackets_style,
-            multi_select_cursor_style=args.multi_select_cursor_style,
-            multi_select_empty_ok=args.multi_select_empty_ok,
-            multi_select_keys=args.multi_select_keys,
-            multi_select_select_on_accept=args.multi_select_select_on_accept,
-            preselected_entries=args.preselected,
-            preview_border=args.preview_border,
-            preview_command=args.preview_command,
-            preview_size=args.preview_size,
-            preview_title=args.preview_title,
-            search_case_sensitive=args.case_sensitive,
-            search_highlight_style=args.search_highlight_style,
-            search_key=args.search_key,
-            shortcut_brackets_highlight_style=args.shortcut_brackets_highlight_style,
-            shortcut_key_highlight_style=args.shortcut_key_highlight_style,
-            show_multi_select_hint=args.show_multi_select_hint,
-            show_multi_select_hint_text=args.show_multi_select_hint_text,
-            show_search_hint=args.show_search_hint,
-            show_search_hint_text=args.show_search_hint_text,
-            show_shortcut_hints=args.show_shortcut_hints,
-            show_shortcut_hints_in_status_bar=args.show_shortcut_hints_in_status_bar,
-            status_bar=args.status_bar,
-            status_bar_below_preview=args.status_bar_below_preview,
-            status_bar_style=args.status_bar_style,
-            title=args.title,
-        )
-    except (InvalidParameterCombinationError, InvalidStyleError, UnknownMenuEntryError) as e:
-        print(str(e), file=sys.stderr)
-        sys.exit(0)
-    chosen_entries = terminal_menu.show()
-    if chosen_entries is None:
-        sys.exit(0)
-    else:
-        if isinstance(chosen_entries, Iterable):
-            if args.stdout:
-                print(",".join(str(entry + 1) for entry in chosen_entries))
-            sys.exit(chosen_entries[0] + 1)
-        else:
-            chosen_entry = chosen_entries
-            if args.stdout:
-                print(chosen_entry + 1)
-            sys.exit(chosen_entry + 1)
+# def main() -> None:
+#     try:
+#         args = parse_arguments()
+#     except SystemExit:
+#         sys.exit(0)  # Error code 0 is the error case in this program
+#     except NoMenuEntriesError as e:
+#         print(str(e), file=sys.stderr)
+#         sys.exit(0)
+#     if args.print_version:
+#         print("{}, version {}".format(os.path.basename(sys.argv[0]), __version__))
+#         sys.exit(0)
+#     try:
+#         terminal_menu = TerminalMenu(
+#             menu_entries=args.entries,
+#             clear_menu_on_exit=args.clear_menu_on_exit,
+#             clear_screen=args.clear_screen,
+#             cursor_index=args.cursor_index,
+#             cycle_cursor=args.cycle,
+#             exit_on_shortcut=args.exit_on_shortcut,
+#             menu_cursor=args.cursor,
+#             menu_cursor_style=args.cursor_style,
+#             menu_highlight_style=args.highlight_style,
+#             multi_select=args.multi_select,
+#             multi_select_cursor=args.multi_select_cursor,
+#             multi_select_cursor_brackets_style=args.multi_select_cursor_brackets_style,
+#             multi_select_cursor_style=args.multi_select_cursor_style,
+#             multi_select_empty_ok=args.multi_select_empty_ok,
+#             multi_select_keys=args.multi_select_keys,
+#             multi_select_select_on_accept=args.multi_select_select_on_accept,
+#             preselected_entries=args.preselected,
+#             preview_border=args.preview_border,
+#             preview_command=args.preview_command,
+#             preview_size=args.preview_size,
+#             preview_title=args.preview_title,
+#             search_case_sensitive=args.case_sensitive,
+#             search_highlight_style=args.search_highlight_style,
+#             search_key=args.search_key,
+#             shortcut_brackets_highlight_style=args.shortcut_brackets_highlight_style,
+#             shortcut_key_highlight_style=args.shortcut_key_highlight_style,
+#             show_multi_select_hint=args.show_multi_select_hint,
+#             show_multi_select_hint_text=args.show_multi_select_hint_text,
+#             show_search_hint=args.show_search_hint,
+#             show_search_hint_text=args.show_search_hint_text,
+#             show_shortcut_hints=args.show_shortcut_hints,
+#             show_shortcut_hints_in_status_bar=args.show_shortcut_hints_in_status_bar,
+#             status_bar=args.status_bar,
+#             status_bar_below_preview=args.status_bar_below_preview,
+#             status_bar_style=args.status_bar_style,
+#             title=args.title,
+#         )
+#     except (InvalidParameterCombinationError, InvalidStyleError, UnknownMenuEntryError) as e:
+#         print(str(e), file=sys.stderr)
+#         sys.exit(0)
+#     chosen_entries = terminal_menu.show()
+#     if chosen_entries is None:
+#         sys.exit(0)
+#     else:
+#         if isinstance(chosen_entries, Iterable):
+#             if args.stdout:
+#                 print(",".join(str(entry + 1) for entry in chosen_entries))
+#             sys.exit(chosen_entries[0] + 1)
+#         else:
+#             chosen_entry = chosen_entries
+#             if args.stdout:
+#                 print(chosen_entry + 1)
+#             sys.exit(chosen_entry + 1)
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

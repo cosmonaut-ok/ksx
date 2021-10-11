@@ -1,6 +1,6 @@
 from json import loads, dumps
 import subprocess
-from simple_term_menu import TerminalMenu
+# from simple_term_menu import TerminalMenu
 
 class Werbs():
     def __init__(self, out_format=None, pod_shell="/bin/bash", kctl_bin="kubectl", namespace=None, all_ns=False, trace=False, labels=None, config_path=None):

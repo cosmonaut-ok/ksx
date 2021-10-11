@@ -4,11 +4,12 @@ from os import makedirs, symlink
 
 GLOBAL_API_CONFIG = {
     "bin": "kubectl",
-    "confname": "ksx.json",
+    "configname": "ksx.json",
     "binpath": join(Path.home(), "bin"),
     "configpath": join(Path.home(), ".config", "ksx"),
     "cachepath": join(Path.home(), ".cache", "ksx"),
     "kctlpath": join(Path.home(), "bin", "kubectl"),
+    "base_templates": ["simple_term_menu.py", "werbs.py", "api_res.py"],
     "conf": [
         {
             "name": "pods",

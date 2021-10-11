@@ -1,29 +1,26 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
-import os, sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+import sys
+from os.path import dirname, realpath, join, exists
+from re import match, search
 
-from os.path import join, realpath, dirname, exists
-from os import makedirs, symlink
-from pathlib import Path
+global import_dir, local_bin_subdir
 
-import stat
-import subprocess
-import argparse
-import re
+local_bin_subdir = "bin"
 
-from werbs import Werbs
+import_dir = dirname(realpath(__file__))
+if match(r'bin$', import_dir) or match(r'bin/$', import_dir):
+    import_dir = dirname(import_dir) # up one level, if "bin" at the end
+
+sys.path.append(import_dir)
+
+from string import Template # native templating
+import apis
+import os, stat, subprocess
 
 import http.client, json
 from urllib.parse import urlparse
 
-from string import Template # native templating
-
-import apis
-
-global am_i_bin, global_api_config
-
-am_i_bin = False
 
 def http_get(domain, path, verbose=False):
     is_got = False
@@ -54,11 +51,16 @@ def http_get(domain, path, verbose=False):
     return r1.read()
 
 
-def install_kubectl(kubepath, kubeversion=None, verbose=False):
+def install_kubectl(kubepath=None, kubeversion=None, verbose=False):
+    api_config = apis.GLOBAL_API_CONFIG
+
+    if not kubepath:
+        kubepath = join(api_config["binpath"], 'kubectl')
+
     if not kubeversion:
         kubeversion = http_get("dl.k8s.io", "/release/stable.txt", verbose).decode('utf-8')
 
-    if not re.match(r'^v', kubeversion):
+    if not match(r'^v', kubeversion):
         kubeversion = 'v' + kubeversion
 
     if verbose:
@@ -85,7 +87,112 @@ def install_kubectl(kubepath, kubeversion=None, verbose=False):
         os.chmod(kubepath, st.st_mode | stat.S_IEXEC)
 
 
-def genconfig (kubeconfig, kubepath, shell='/bin/bash', verbose=False):
+def compile(verbose=False):
+    global local_bin_subdir
+    # get "werbs" template
+    api_config = apis.GLOBAL_API_CONFIG
+
+    for i in api_config["conf"]:
+        result = ""
+        dist_bindir = join(import_dir, local_bin_subdir)
+        resfile = join(dist_bindir, i["filename"])
+        configfile = join(api_config["configpath"], api_config["configname"])
+
+        os.makedirs(dist_bindir, exist_ok = True)
+
+        # reset file content
+        with open(resfile, 'w') as f:
+            f.write("")
+
+        ## write base templates
+        for t in api_config["base_templates"]:
+            with open(t, 'r') as f:
+                src = f.read()
+            with open(resfile, 'a') as f:
+                f.write(src)
+
+        # write main template
+        with open(i['template'], 'r') as f:
+            i["config"] = configfile
+            src = Template(f.read())
+            result = src.substitute(i)
+        with open(resfile, 'a') as f:
+            f.write(result)
+
+        # chmod +x
+        st = os.stat(resfile)
+        os.chmod(resfile, st.st_mode | stat.S_IEXEC)
+        if verbose:
+            print("file {} generated".format(i["filename"]))
+            
+
+def install(verbose=False):
+    api_config = apis.GLOBAL_API_CONFIG
+    dist_bindir = join(import_dir, local_bin_subdir)
+
+    for i in api_config["conf"]:
+        origpath = join(dist_bindir, i["filename"])
+        copypath = join(api_config["binpath"], i["filename"])
+        orig = open(origpath, "r")
+        copy = open(copypath, "wt")
+        line = orig.read()
+        copy.write(str(line))
+        orig.close()
+        copy.close()
+        ## chmod +x
+        st = os.stat(copypath)
+        os.chmod(copypath, st.st_mode | stat.S_IEXEC)
+        if verbose:
+            print("file {} installed".format(copypath))
+
+
+def uninstall(verbose=False):
+    api_config = apis.GLOBAL_API_CONFIG
+    dist_bindir = join(import_dir, local_bin_subdir)
+
+    for i in api_config["conf"]:
+        path = join(api_config["binpath"], i["filename"])
+        os.remove(path) 
+        if verbose:
+            print("file {} removed".format(path))
+
+
+def add_to_path(verbose=False):
+    api_config = apis.GLOBAL_API_CONFIG
+    path=api_config["binpath"]
+
+    if not search(path, os.environ.get('PATH')):
+        profile_path = join(os.environ['HOME'], ".profile")
+        ## try bashrc
+        if not exists(profile_path):
+            profile_path = join(os.environ['HOME'], ".bashrc")
+            ## try zshrc
+        if not exists(profile_path):
+            profile_path = join(os.environ['HOME'], ".zshrc")
+            ## give up
+        if not exists(profile_path):
+            raise FileNotFoundError("Can not find shell profile file to add ksx to PATH")
+    
+        with open(profile_path, 'a') as f:
+            f.write("export PATH={}:$PATH\n".format(path))
+        if verbose:
+            print("Add {} to PATH".format(path))
+    else:
+        if verbose:
+            print("{} already exist in PATH. Skip".format(path))
+
+
+def genconfig (kubepath=None, shell='/bin/bash', verbose=False):
+    api_config = apis.GLOBAL_API_CONFIG
+
+    # make config directory
+    os.makedirs(api_config["configpath"], exist_ok = True)
+
+    configpath = join(api_config["configpath"], api_config["configname"])
+    ## set default kubepath
+    if not kubepath:
+        kubepath = join(api_config["binpath"], 'kubectl')
+
     ## setup config file
     config = {
         "cmd": kubepath,
@@ -96,264 +203,14 @@ def genconfig (kubeconfig, kubepath, shell='/bin/bash', verbose=False):
 
     if verbose:
         print("Generating configfile")
-    with open(kubeconfig, "w") as outfile:
+    with open(configpath, "w") as outfile:
         outfile.write(json_object)
 
 
-def genfiles (verbose=False):
+compile(True)
+install(True)
+# uninstall(True)
 
-    ## create directory
-    try:
-        os.makedirs("bin")
-    except FileExistsError:
-        pass
-
-    api_config = apis.GLOBAL_API_CONFIG
-
-    for i in api_config:
-        result = ""
-        with open(i['template'], 'r') as f:
-            src = Template(f.read())
-            result = src.substitute(i)
-
-        # write file
-        fname = join("bin", i["filename"])
-        with open(fname, 'w') as f:
-            f.write(result)
-        ## chmod +x
-        st = os.stat(fname)
-        os.chmod(fname, st.st_mode | stat.S_IEXEC)
-        if verbose:
-            print("file {} generated".format(i["filename"]))
-
-    # ## copy ksc
-    # f = open('ksc',"r")
-    # copyname = join("bin", "ksc")
-    # copy = open(copyname, "wt")
-    # line = f.read()
-    # copy.write(str(line))
-    # f.close()
-    # copy.close()
-    # ## chmod +x
-    # st = os.stat(copyname)
-    # os.chmod(copyname, st.st_mode | stat.S_IEXEC)
-    # if verbose:
-    #     print("file {} copied".format(copyname))
-
-    # ## copy ksn
-    # f = open('ksn',"r")
-    # copyname = join("bin", "ksn")
-    # copy = open(copyname, "wt")
-    # line = f.read()
-    # copy.write(str(line))
-    # f.close()
-    # copy.close()
-    # ## chmod +x
-    # st = os.stat(copyname)
-    # os.chmod(copyname, st.st_mode | stat.S_IEXEC)
-    # if verbose:
-    #     print("file {} copied".format(copyname))
-
-    ## copy ksx
-    f = open('ksx',"r")
-    copyname = join("bin", "ksx")
-    copy = open(copyname, "wt")
-    line = f.read()
-    copy.write(str(line))
-    f.close()
-    copy.close()
-    ## chmod +x
-    st = os.stat(copyname)
-    os.chmod(copyname, st.st_mode | stat.S_IEXEC)
-    if verbose:
-        print("file {} copied".format(copyname))
-
-
-def install(config_path):
-    # install binaries
-    bin_dirname = dirname(realpath(__file__))
-    if not (re.match(r'bin$', bin_dirname) or re.match(r'bin/$', bin_dirname)): # real ksx path is one level upper, then "bin"
-        bin_dirname = join(dirname(realpath(__file__)), "bin")
-
-    user_bin_dirname=join(Path.home(), "bin")
-    user_cfg_dirname=join(Path.home(), ".config", "ksx")
-    user_cache_dirname=join(Path.home(), ".cache", "ksx")
-    ## make local bin dir if not exists
-    try:
-        os.makedirs(user_bin_dirname)
-    except FileExistsError:
-        pass
-
-    try:
-        os.makedirs(user_cfg_dirname)
-    except FileExistsError:
-        pass
-
-    try:
-        os.makedirs(user_cache_dirname)
-    except FileExistsError:
-        pass
-
-    api_config = apis.GLOBAL_API_CONFIG
-    for i in api_config:
-        src=join(bin_dirname, i["filename"])
-        dst=join(user_bin_dirname, i["filename"])
-        try:
-            symlink(src, dst)
-        except FileExistsError:
-            pass
-
-    try:
-        symlink(config_path, join(user_cfg_dirname, "ksx.json"))
-    except FileExistsError:
-        pass
-
-
-def init(kubeversion=None, kubeshell='/bin/bash', no_genconfig=False, genexecs=False, verbose=False):
-    if am_i_bin:
-        kctl_path=join(dirname(realpath(__file__)), 'kubectl')
-        config_path=join(dirname(realpath(__file__)), 'ksx.json')
-    else:
-        kctl_path=join(dirname(dirname(realpath(__file__))), 'kubectl')
-        config_path=join(dirname(dirname(realpath(__file__))), 'ksx.json')
-
-    install_kubectl(kctl_path, kubeversion, verbose)
-
-    if not no_genconfig:
-        genconfig(config_path, kctl_path, kubeshell, verbose)
-
-    if not am_i_bin and genexecs:
-        genfiles(verbose)
-
-    install(config_path)
-
-
-def run_kubectl(kctl_path=None, command=''):
-    if not kctl_path:
-        kctl_path=join(dirname(realpath(__file__)), 'kubectl')
-    cmd = "{} {}".format(kctl_path, command)
-    subprocess.call(cmd, shell=True)
-
-
-def add_to_path(verbose=False):
-    profile_path = join(os.environ['HOME'], ".profile")
-    ## try bashrc
-    if not exists(profile_path):
-        profile_path = join(os.environ['HOME'], ".bashrc")
-    ## try zshrc
-    if not exists(profile_path):
-        profile_path = join(os.environ['HOME'], ".zshrc")
-    ## give up
-    if not exists(profile_path):
-        raise FileNotFoundError("Can not find shell profile file to add ksx to PATH")
-    
-    self_dirname = dirname(realpath(__file__))
-    if not (re.match(r'bin$', self_dirname) or re.match(r'bin/$', self_dirname)): # real ksx path is one level upper, then "bin"
-        self_dirname = join(dirname(realpath(__file__)), "bin")
-    if verbose:
-        print("Adding {} to PATH".format(self_dirname))
-    with open(profile_path, 'a') as f:
-        f.write("export PATH={}:$PATH\n".format(self_dirname))
-
-
-def main ():
-    parser = argparse.ArgumentParser(description='ksx is a collection of kubernetes management tools. This script is for service operations')
-
-    parser.add_argument('-i', '--info',
-                        action='store_true',
-                        dest='info',
-                        help='Show info about ksx tools'
-                        )
-
-    parser.add_argument('-k', '--kubectl',
-                        type=str,
-                        dest='kubectl',
-                        help='run kubectl directly'
-                        )
-
-    parser.add_argument('--init',
-                        action='store_true',
-                        dest='init',
-                        help='Preform initial configuration (e.g. install embedded kubectl, generate config etc)'
-                        )
-
-    parser.add_argument('--add-to-path',
-                        action='store_true',
-                        dest='add_to_path',
-                        help='Preform initial configuration (e.g. install embedded kubectl, generate config etc)'
-                        )
-
-    if not am_i_bin:
-        parser.add_argument('--genexecs',
-                            action='store_true',
-                            dest='genexecs',
-                            help='Generate executable utils'
-                            )
-
-    parser.add_argument('-v', '--verbose',
-                        action='count',
-                        default=0)
-
-    parser.add_argument('--version',
-                        action='store_true',
-                        help='Print ksx version and exit',
-                        default=None
-                        )
-
-    parser.add_argument('--kubectl-version',
-                        dest='kubeversion',
-                        type=str,
-                        help='Install specified kubectl version (default: current stable)',
-                        default=None
-                        )
-
-    parser.add_argument('--no-genconfig',
-                        action='store_true',
-                        dest='nogenconfig',
-                        help='Show info about ksx tools'
-                        )
-
-    parser.add_argument('--kubectl-shell',
-                        dest='kubeshell',
-                        type=str,
-                        help='Use specific shell as default to enter the pod (default: /bin/bash)',
-                        default='/bin/bash'
-                        )
-
-    args = parser.parse_args()
-
-    genexecs = False
-    try:
-        genexecs = args.genexecs
-    except:
-        pass
-
-    if args.kubectl:
-        run_kubectl(command=args.kubectl)
-    elif args.info:
-        show_extended_help()
-    elif args.init or genexecs:
-        init(args.kubeversion, args.kubeshell, args.nogenconfig, genexecs, args.verbose)
-    elif args.version:
-        werbs = Werbs()
-        werbs.print_version()
-    elif args.add_to_path:
-        add_to_path(args.verbose)
-    else:
-        parser.print_help(sys.stderr)
-
-
-def show_extended_help ():
-    print('''ksX is a collection of tools for kubernetes, wrapped over standard
-kubernetes control tool `kubectl`.  The motivation of ksX is to
-develop more `laconic` kubectl, that also follows unix way principle:
-`Make each program do one thing well` and principle of least
-astonishment. So, each ksX's tool is very simple and bound to some
-kubernetes resouce, like `pod`, `ingress` etc. The list of ksX tools:
-''')
-
-    for i in apis.GLOBAL_API_CONFIG:
-        print("{}\t- {}".format(i["filename"], i["description"]))
-
-if __name__ == "__main__":
-    main()
+# add_to_path(True)
+# genconfig(verbose=True)
+# install_kubectl(verbose=True)

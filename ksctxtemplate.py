@@ -6,16 +6,16 @@
 
 import os,sys,subprocess
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-from api_res import ApiRes
+# from api_res import ApiRes
 
 class ApiContext(ApiRes):
-    def __init__(self, name, description, has_list, has_output, has_shell,
+    def __init__(self, name, description, config, has_list, has_output, has_shell,
                  has_containers, has_all_ns, has_describe, has_logs, has_remove,
                  has_edit, has_labels, has_info, has_top, has_scale,
                  has_use, has_current):
 
-        super(ApiContext, self).__init__(name, description, has_list,
-                                           has_output, has_shell,
+        super(ApiContext, self).__init__(name, description, config,
+                                           has_list, has_output, has_shell,
                                            has_containers, has_all_ns,
                                            has_describe, has_logs, has_remove,
                                            has_edit, has_labels, has_info,
@@ -69,17 +69,23 @@ class ApiContext(ApiRes):
             self.werbs.print_version()
         elif self.args.describe_res_pos:
             self.use_of(self.args.describe_res_pos[0])
+            if self.args.ns:
+                cmd = "{}/ksn {}".format(os.path.dirname(os.path.realpath(__file__)), self.args.ns)
+                if self.args.trace:
+                    cmd += " -t"
+                subprocess.call(cmd, shell=True)
         elif self.has_info and self.args.info:
             print(self.werbs.info_of("{}/{}".format(self.name, self.args.info)))
         elif self.has_current and self.args.current:
             print(self.werbs.current_context())
-        else: # default action is "get namespaces"
+        else: # default action is "get contexts"
             self.print_contexts()
 
 
 def main ():
     res = ApiContext("$name",
                      description="$description",
+                     config="$config",
                      has_list=$has_list,
                      has_output=$has_output,
                      has_shell=$has_shell,
