@@ -38,12 +38,14 @@ class ApiRes():
         self.has_current = has_current
 
         self.kctl_bin = "/dev/null"
+        self.gcloud_bin = "/dev/null"
         self.pod_shell = ""
 
         with open(self.config, 'r') as f:
             json = loads(f.read())
             self.pod_shell = json['shell'] if json['shell'] else '/bin/sh'
             self.kctl_bin = json['cmd'] if json['cmd'] else 'kubectl'
+            self.gcloud_bin = json['gcloud_cmd'] if json['gcloud_cmd'] else 'gcloud'
 
         parser = argparse.ArgumentParser(description=description)
 
@@ -151,7 +153,7 @@ class ApiRes():
                                  help='output format json|yaml|wide|custom-columns=...|custom-columns-file=...|go-template=...|go-template-file=...|jsonpath=...|jsonpath-file=...]')
 
         if self.has_containers:
-            sagroup.add_argument('--cnt', '--container',
+            sagroup.add_argument('--cn', '--container-name',
                                  type=str,
                                  dest='container_name',
                                  help='Operate with single container inside of multicontainer {}'.format(self.name)
@@ -178,7 +180,7 @@ class ApiRes():
                              )
 
         if self.has_containers:
-            cagroup.add_argument('--cns', '--containers',
+            cagroup.add_argument('--cl', '--containers-list',
                                  type=str,
                                  dest='containers_list',
                                  help='Get list of {} running containers'.format(self.name)

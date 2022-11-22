@@ -15,7 +15,7 @@ PYTHONPATH := $(PYTHONPATH):$(shell realpath -P .)
 	fi
 
 .deps:
-	$(PYBIN) -m pip install nuitka
+	$(PYBIN) -m pip install nuitka orderedset
 
 all: .venv .deps
 	mkdir -p $(TARGETDIR)/ksx/bin $(TARGETDIR)/ksx/etc
@@ -45,4 +45,4 @@ clean:
 	rm -rf $(TARGETDIR) __pycache__
 
 link:
-	if test -d bin; then cd bin && for i in `ls`; do sudo ln -sf $PWD/$i /usr/local/bin/$i; done; fi
+	if test -d bin; then cd bin && for i in `ls`; do sudo echo ln -sf $$PWD/$$i /usr/local/bin/$$i; done; fi

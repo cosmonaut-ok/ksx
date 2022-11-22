@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+
+import os, sys, subprocess, argparse
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+
+from os.path import join, realpath, dirname
+from werbs import Werbs
+from json import loads
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument("use_configuration_pos", help="Use configuration as current", type=str, nargs='*')
+
+# command arguments group
+cagroup=parser.add_argument_group('Werb arguments')
+
+# service arguments group
+sagroup = parser.add_argument_group('Service arguments')
+
+cagroup.add_argument('-l', '--list',
+                     action='store_true',
+                     dest='list',
+                     help='Suppress Output'
+                     )
+
+cagroup.add_argument('-u', '--use-config',
+                     type=str,
+                     dest='use_configuration',
+                     help='Use configuration as current'
+                     )
+
+sagroup.add_argument('-t', '--trace',
+                     action='store_true',
+                     dest='trace',
+                     help='trace real kubectl commands'
+                     )
+
+sagroup.add_argument('-v', '--version',
+                     action='store_true',
+                     dest='version',
+                     help='show version of application'
+                     )
+
+gcloud_bin = "/dev/null"
+
+config=join(dirname(dirname(realpath(__file__))), 'ksx.json')
+
+with open(config, 'r') as f:
+    json = loads(f.read())
+    gcloud_bin = json['cmd'] if json['cmd'] else 'kubectl'
+
+werbs = Werbs(config_path=config, gcloud_bin=gcloud_bin)
+
+args = parser.parse_args()
+
+def pit(string):
+    global args
+    if args.trace:
+        print("cmd: `{}`".format(string))
+
+
+def current_configuration():
+    global gcloud_bin
+    cmd = gcloud_bin + " config current-configuration" # get-configurations -o name
+    pit(cmd)
+    curr = subprocess.getoutput(cmd)
+    return curr
+
+
+def list_configurations():
+    global gcloud_bin
+    cmd = gcloud_bin + " config configurations list"
+    pit(cmd)
+    lst = subprocess.getoutput(cmd)
+    return lst
+
+
+def print_contexts():
+    global gcloud_bin
+    cmd = gcloud_bin + " config get-contexts"
+    pit(cmd)
+    subprocess.call(cmd, shell=True)
+
+
+def set_current_context(ctx):
+    global gcloud_bin
+    cmd = gcloud_bin + " config use-context {}".format(ctx)
+    pit(cmd)
+    subprocess.call(cmd, shell=True)
+
+
+if args.list:
+    print_contexts()
+elif args.use_context:
+    set_current_context(args.use_context)
+    if args.namespace:
+        cmd = join(dirname(realpath(__file__)), 'ksn') + " {}".format(args.namespace)
+        pit(cmd)
+        subprocess.call(cmd, shell=True)
+elif args.version:
+    werbs.print_version()
+elif args.use_context_pos:
+    set_current_context(args.use_context_pos[0])
+    if args.use_context_pos[0] == '-':
+        set_current_context(args.use_context_pos[0])
+    else:
+        set_current_context(args.use_context_pos[0])
+    ## if namespace is also given
+    if args.namespace:
+        cmd = join(dirname(realpath(__file__)), 'ksn') + " {}".format(args.namespace)
+        pit(cmd)
+        subprocess.call(cmd, shell=True)
+else:
+    print(current_configuration())

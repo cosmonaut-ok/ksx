@@ -20,6 +20,7 @@ class Werbs():
 
             self.shell = pod_shell if pod_shell else json['shell'] if json['shell'] else '/bin/sh'
             self.kctl = kctl_bin if kctl_bin else json['cmd'] if json['cmd'] else 'kubectl'
+            self.gcloud_bin = json['gcloud_cmd'] if json['gcloud_cmd'] else 'gcloud'
 
             self.trace = trace
             self.labels = labels
@@ -47,7 +48,12 @@ class Werbs():
 
 
     def current_context(self):
-        cmd = "kubectl config current-context 2>/dev/null" # get-contexts -o name
+        cmd = self.kctl + " config current-context 2>/dev/null" # get-contexts -o name
+        curr = subprocess.getoutput(cmd)
+        return curr
+
+    def current_gconfig(self):
+        cmd = self.gcloud_bin + " config list 2>&1 | grep 'Your active configuration is' | cut -d'[' -f2 | cut -d']' -f1"
         curr = subprocess.getoutput(cmd)
         return curr
 
